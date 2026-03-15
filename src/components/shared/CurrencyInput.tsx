@@ -13,6 +13,38 @@ interface CurrencyInputProps {
   disabled?: boolean;
 }
 
+/**
+ * Formats a raw string with Italian thousands separators in real-time.
+ * Accepts only digits, commas (decimal sep), and minus.
+ */
+function formatLiveItalian(raw: string): string {
+  // Remove everything except digits, comma, minus
+  let cleaned = raw.replace(/[^\d,\-]/g, '');
+
+  // Only allow one minus at start
+  const negative = cleaned.startsWith('-');
+  cleaned = cleaned.replace(/-/g, '');
+
+  // Only allow one comma
+  const parts = cleaned.split(',');
+  let intPart = parts[0] || '';
+  const decPart = parts.length > 1 ? parts.slice(1).join('') : null;
+
+  // Remove leading zeros (but keep at least one digit)
+  intPart = intPart.replace(/^0+(?=\d)/, '');
+
+  // Add thousand separators (dots)
+  if (intPart.length > 3) {
+    intPart = intPart.replace(/\B(?=(\d{3})+(?!\d))/g, '.');
+  }
+
+  let result = (negative ? '-' : '') + intPart;
+  if (decPart !== null) {
+    result += ',' + decPart;
+  }
+  return result;
+}
+
 export function CurrencyInput({
   value,
   onChange,
@@ -24,31 +56,33 @@ export function CurrencyInput({
   disabled,
 }: CurrencyInputProps) {
   const [isFocused, setIsFocused] = useState(false);
-  const [rawValue, setRawValue] = useState(String(value || ''));
+  const [displayText, setDisplayText] = useState('');
   const inputRef = useRef<HTMLInputElement>(null);
 
+  // Sync display from external value when not focused
   useEffect(() => {
     if (!isFocused) {
-      setRawValue(value ? String(value) : '');
+      setDisplayText(value ? formatCurrency(value, decimals) : '');
     }
-  }, [value, isFocused]);
+  }, [value, isFocused, decimals]);
 
   const handleFocus = () => {
     setIsFocused(true);
-    setRawValue(value ? String(value) : '');
+    // Show current value formatted in Italian style for editing
+    setDisplayText(value ? formatCurrency(value, decimals) : '');
   };
 
   const handleBlur = () => {
     setIsFocused(false);
-    const parsed = parseItalianNumber(rawValue);
+    const parsed = parseItalianNumber(displayText);
     onChange(parsed);
   };
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setRawValue(e.target.value);
+    const raw = e.target.value;
+    const formatted = formatLiveItalian(raw);
+    setDisplayText(formatted);
   };
-
-  const displayValue = isFocused ? rawValue : (value ? formatCurrency(value, decimals) : '');
 
   return (
     <div className={className}>
@@ -60,8 +94,9 @@ export function CurrencyInput({
       <div className="relative">
         <Input
           ref={inputRef}
-          type={isFocused ? 'number' : 'text'}
-          value={displayValue}
+          type="text"
+          inputMode="decimal"
+          value={displayText}
           onChange={handleChange}
           onFocus={handleFocus}
           onBlur={handleBlur}

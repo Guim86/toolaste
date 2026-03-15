@@ -2,7 +2,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { CurrencyInput } from '@/components/shared/CurrencyInput';
-import { Badge } from '@/components/ui/badge';
+import { Switch } from '@/components/ui/switch';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import type { ProjectData, ExpenseCategory, ExpenseItem, ExpenseStatus } from '@/types/project';
 import { Receipt, ChevronDown, Plus, X } from 'lucide-react';
@@ -32,6 +32,55 @@ const nextStatus: Record<ExpenseStatus, ExpenseStatus> = {
   daVerificare: 'certa',
 };
 
+function AgencyRow({
+  item,
+  onUpdate,
+}: {
+  item: ExpenseItem;
+  onUpdate: (updates: Partial<ExpenseItem>) => void;
+}) {
+  const isPercentage = item.isPercentage ?? false;
+
+  return (
+    <div className="flex items-center gap-2">
+      <span className="text-sm flex-1 min-w-0 truncate py-1">Agenzia</span>
+      <div className="flex items-center gap-1.5">
+        <span className="text-[10px] text-muted-foreground">Fisso</span>
+        <Switch
+          checked={isPercentage}
+          onCheckedChange={(checked) =>
+            onUpdate({ isPercentage: checked })
+          }
+          className="scale-75"
+        />
+        <span className="text-[10px] text-muted-foreground">%</span>
+      </div>
+      {isPercentage ? (
+        <CurrencyInput
+          value={item.percentage ?? 0}
+          onChange={v => onUpdate({ percentage: v })}
+          suffix="%"
+          decimals={2}
+          className="w-20"
+        />
+      ) : (
+        <CurrencyInput
+          value={item.amount}
+          onChange={v => onUpdate({ amount: v })}
+          className="w-28"
+        />
+      )}
+      <button
+        className={`text-[10px] px-2 py-0.5 rounded-full font-medium cursor-pointer ${statusColors[item.status]}`}
+        onClick={() => onUpdate({ status: nextStatus[item.status] })}
+        title="Clicca per cambiare stato"
+      >
+        {statusLabels[item.status]}
+      </button>
+    </div>
+  );
+}
+
 function ExpenseRow({
   item,
   durataOperazione,
@@ -57,20 +106,11 @@ function ExpenseRow({
           <span className="text-sm truncate block py-1">{item.label}</span>
         )}
       </div>
-      {item.isPercentage ? (
-        <CurrencyInput
-          value={item.percentage ?? 0}
-          onChange={v => onUpdate({ percentage: v })}
-          suffix="%"
-          className="w-20"
-        />
-      ) : (
-        <CurrencyInput
-          value={item.amount}
-          onChange={v => onUpdate({ amount: v })}
-          className="w-28"
-        />
-      )}
+      <CurrencyInput
+        value={item.amount}
+        onChange={v => onUpdate({ amount: v })}
+        className="w-28"
+      />
       {item.isMonthly && (
         <span className="text-xs text-muted-foreground whitespace-nowrap">
           × {durataOperazione}m = {formatEuro(item.amount * durataOperazione)}
@@ -112,6 +152,8 @@ function CategorySection({
     return sum + item.amount;
   }, 0);
 
+  const isVendita = category.id === 'vendita';
+
   return (
     <Collapsible open={open} onOpenChange={setOpen}>
       <CollapsibleTrigger className="flex items-center justify-between w-full py-2 hover:bg-muted/50 rounded px-2 -mx-2">
@@ -122,15 +164,28 @@ function CategorySection({
         </div>
       </CollapsibleTrigger>
       <CollapsibleContent className="space-y-2 pl-2 pt-1">
-        {category.items.map(item => (
-          <ExpenseRow
-            key={item.id}
-            item={item}
-            durataOperazione={durataOperazione}
-            onUpdate={updates => onUpdateItem(item.id, updates)}
-            onRemove={item.isCustom ? () => onRemoveItem(item.id) : undefined}
-          />
-        ))}
+        {category.items.map(item => {
+          // Special rendering for agency item in vendita category
+          if (isVendita && item.id === 'agenzia') {
+            return (
+              <AgencyRow
+                key={item.id}
+                item={item}
+                onUpdate={updates => onUpdateItem(item.id, updates)}
+              />
+            );
+          }
+
+          return (
+            <ExpenseRow
+              key={item.id}
+              item={item}
+              durataOperazione={durataOperazione}
+              onUpdate={updates => onUpdateItem(item.id, updates)}
+              onRemove={item.isCustom ? () => onRemoveItem(item.id) : undefined}
+            />
+          );
+        })}
         <Button variant="ghost" size="sm" onClick={onAddItem} className="text-xs h-7">
           <Plus className="h-3 w-3 mr-1" /> Aggiungi voce
         </Button>
