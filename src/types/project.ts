@@ -173,8 +173,7 @@ export function createDefaultExpenses(): ExpenseCategory[] {
       id: 'vendita',
       label: 'Vendita',
       items: [
-        { id: 'agenzia_fisso', label: 'Agenzia (fisso)', amount: 0, status: 'stimata' },
-        { id: 'agenzia_percentuale', label: 'Agenzia (%)', amount: 0, status: 'stimata', isPercentage: true, percentage: 3 },
+        { id: 'agenzia', label: 'Agenzia', amount: 0, status: 'stimata', isPercentage: true, percentage: 3 },
       ],
     },
   ];

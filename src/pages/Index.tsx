@@ -8,6 +8,7 @@ import { NotesSection } from '@/components/sections/NotesSection';
 import { ResultsSidebar } from '@/components/sidebar/ResultsSidebar';
 import { ProjectManager } from '@/components/ProjectManager';
 import { ScrollArea } from '@/components/ui/scroll-area';
+import { ResizablePanelGroup, ResizablePanel, ResizableHandle } from '@/components/ui/resizable';
 
 const Index = () => {
   const {
@@ -47,10 +48,33 @@ const Index = () => {
         />
       </header>
 
-      {/* Main layout */}
-      <div className="flex-1 flex overflow-hidden">
-        {/* Left column — inputs */}
-        <ScrollArea className="flex-1 min-w-0">
+      {/* Main layout — resizable */}
+      <div className="flex-1 overflow-hidden hidden lg:block">
+        <ResizablePanelGroup direction="horizontal" className="h-full">
+          <ResizablePanel defaultSize={60} minSize={35}>
+            <ScrollArea className="h-full">
+              <div className="max-w-2xl mx-auto p-4 space-y-4 pb-8">
+                <ProjectInfoSection project={project} onUpdate={updateProject} />
+                <DecisionParametersSection project={project} onUpdate={updateProject} />
+                <AuctionSimulationSection project={project} onUpdate={updateProject} />
+                <SaleScenariosSection project={project} onUpdate={updateProject} />
+                <ExpensesSection project={project} onUpdate={updateProject} />
+                <NotesSection project={project} onUpdate={updateProject} />
+              </div>
+            </ScrollArea>
+          </ResizablePanel>
+
+          <ResizableHandle withHandle />
+
+          <ResizablePanel defaultSize={40} minSize={20} maxSize={55}>
+            <ResultsSidebar project={project} />
+          </ResizablePanel>
+        </ResizablePanelGroup>
+      </div>
+
+      {/* Mobile fallback — stacked */}
+      <div className="flex-1 overflow-hidden lg:hidden">
+        <ScrollArea className="h-full">
           <div className="max-w-2xl mx-auto p-4 space-y-4 pb-8">
             <ProjectInfoSection project={project} onUpdate={updateProject} />
             <DecisionParametersSection project={project} onUpdate={updateProject} />
@@ -58,13 +82,9 @@ const Index = () => {
             <SaleScenariosSection project={project} onUpdate={updateProject} />
             <ExpensesSection project={project} onUpdate={updateProject} />
             <NotesSection project={project} onUpdate={updateProject} />
+            <ResultsSidebar project={project} />
           </div>
         </ScrollArea>
-
-        {/* Right column — sticky results */}
-        <aside className="w-96 border-l bg-card shrink-0 hidden lg:block">
-          <ResultsSidebar project={project} />
-        </aside>
       </div>
     </div>
   );
