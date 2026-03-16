@@ -1,4 +1,4 @@
-import type { ScenarioResult } from '@/types/project';
+import type { ScenarioResult, RoiThresholds } from '@/types/project';
 import { formatEuro, formatPercent } from '@/utils/formatting';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 
@@ -6,14 +6,15 @@ interface Props {
   result: ScenarioResult;
   purchaseRange: { min: number; max: number };
   currentPrice: number;
+  roiThresholds: RoiThresholds;
 }
 
-const esitoConfig: Record<ScenarioResult['esito'], { label: string; className: string }> = {
-  non_conviene: { label: 'Non conviene', className: 'bg-danger text-danger-foreground' },
-  borderline: { label: 'Borderline', className: 'bg-warning text-warning-foreground' },
-  conviene: { label: 'Conviene', className: 'bg-success text-success-foreground' },
-  ottima: { label: 'Ottima', className: 'bg-success text-success-foreground' },
-  eccellente: { label: 'Eccellente', className: 'bg-primary text-primary-foreground' },
+export const esitoConfig: Record<ScenarioResult['esito'], { label: string; className: string; dotClass: string }> = {
+  non_conviene: { label: 'Non conviene', className: 'bg-danger text-danger-foreground', dotClass: 'bg-danger' },
+  borderline: { label: 'Borderline', className: 'bg-warning text-warning-foreground', dotClass: 'bg-warning' },
+  conviene: { label: 'Conviene', className: 'bg-success/70 text-success-foreground', dotClass: 'bg-success/70' },
+  ottima: { label: 'Ottima', className: 'bg-success text-success-foreground', dotClass: 'bg-success' },
+  eccellente: { label: 'Eccellente', className: 'bg-primary text-primary-foreground', dotClass: 'bg-primary' },
 };
 
 export function FeasibilityBar({ result, purchaseRange, currentPrice }: Props) {
