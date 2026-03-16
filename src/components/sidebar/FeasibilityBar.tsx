@@ -1,5 +1,6 @@
 import type { ScenarioResult } from '@/types/project';
 import { formatEuro, formatPercent } from '@/utils/formatting';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 
 interface Props {
   result: ScenarioResult;
@@ -26,73 +27,106 @@ export function FeasibilityBar({ result, purchaseRange, currentPrice }: Props) {
   const esito = esitoConfig[result.esito];
 
   return (
-    <div className="space-y-2">
-      <div className="flex items-center justify-between">
-        <span className="text-xs font-medium truncate">{result.scenarioName}</span>
-        <span className={`text-[10px] px-2 py-0.5 rounded-full font-medium ${esito.className}`}>
-          {esito.label}
-        </span>
-      </div>
+    <TooltipProvider delayDuration={200}>
+      <div className="space-y-2">
+        <div className="flex items-center justify-between">
+          <span className="text-xs font-medium truncate">{result.scenarioName}</span>
+          <span className={`text-[10px] px-2 py-0.5 rounded-full font-medium ${esito.className}`}>
+            {esito.label}
+          </span>
+        </div>
 
-      {/* Bar */}
-      <div className="relative h-6 rounded-full overflow-hidden bg-muted">
-        {/* Green zone (feasible) */}
-        <div
-          className="absolute inset-y-0 left-0 bg-success/30 rounded-l-full"
-          style={{ width: `${tettoPercent}%` }}
-        />
-        {/* Red zone (not feasible) */}
-        <div
-          className="absolute inset-y-0 right-0 bg-danger/20 rounded-r-full"
-          style={{ width: `${100 - tettoPercent}%` }}
-        />
-        {/* Tetto max marker */}
-        <div
-          className="absolute inset-y-0 w-0.5 bg-success"
-          style={{ left: `${tettoPercent}%` }}
-          title={`Tetto max: ${formatEuro(result.tettoMassimo)}`}
-        />
-        {/* Current price marker */}
-        {currentPrice > 0 && (
-          <div
-            className="absolute top-0 bottom-0 flex flex-col items-center justify-center"
-            style={{ left: `${currentPercent}%`, transform: 'translateX(-50%)' }}
-          >
-            <div className="w-3 h-3 rounded-full border-2 border-foreground bg-card shadow-sm" />
+        {/* Bar */}
+        <div className="relative h-6 rounded-full overflow-hidden bg-muted">
+          {/* Green zone (feasible) */}
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <div
+                className="absolute inset-y-0 left-0 bg-success/30 rounded-l-full cursor-help"
+                style={{ width: `${tettoPercent}%` }}
+              />
+            </TooltipTrigger>
+            <TooltipContent side="top">
+              <p className="text-xs">Zona sicura: prezzi di acquisto che rispettano i parametri</p>
+            </TooltipContent>
+          </Tooltip>
+
+          {/* Red zone (not feasible) */}
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <div
+                className="absolute inset-y-0 right-0 bg-danger/20 rounded-r-full cursor-help"
+                style={{ width: `${100 - tettoPercent}%` }}
+              />
+            </TooltipTrigger>
+            <TooltipContent side="top">
+              <p className="text-xs">Zona rischiosa: prezzi che non rispettano i vincoli minimi</p>
+            </TooltipContent>
+          </Tooltip>
+
+          {/* Tetto max marker */}
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <div
+                className="absolute inset-y-0 w-0.5 bg-success cursor-help"
+                style={{ left: `${tettoPercent}%` }}
+              />
+            </TooltipTrigger>
+            <TooltipContent side="top">
+              <p className="text-xs">Tetto Max: {formatEuro(result.tettoMassimo)}</p>
+              <p className="text-xs text-muted-foreground">Prezzo massimo di acquisto per rispettare ROI e utile minimo impostati</p>
+            </TooltipContent>
+          </Tooltip>
+
+          {/* Current price marker */}
+          {currentPrice > 0 && (
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <div
+                  className="absolute top-0 bottom-0 flex flex-col items-center justify-center cursor-help"
+                  style={{ left: `${currentPercent}%`, transform: 'translateX(-50%)' }}
+                >
+                  <div className="w-3 h-3 rounded-full border-2 border-foreground bg-card shadow-sm" />
+                </div>
+              </TooltipTrigger>
+              <TooltipContent side="top">
+                <p className="text-xs">Prezzo di aggiudicazione attuale: {formatEuro(currentPrice)}</p>
+              </TooltipContent>
+            </Tooltip>
+          )}
+        </div>
+
+        {/* Labels */}
+        <div className="flex justify-between text-[10px] text-muted-foreground font-mono">
+          <span>{formatEuro(min)}</span>
+          <span className="text-success font-medium">Tetto Max: {formatEuro(result.tettoMassimo)}</span>
+          <span>{formatEuro(max)}</span>
+        </div>
+
+        {/* Key metrics */}
+        <div className="grid grid-cols-2 gap-x-3 gap-y-1 text-xs">
+          <div className="flex justify-between">
+            <span className="text-muted-foreground">Vendita</span>
+            <span className="font-mono">{formatEuro(result.prezzoVendita)}</span>
           </div>
-        )}
-      </div>
-
-      {/* Labels */}
-      <div className="flex justify-between text-[10px] text-muted-foreground font-mono">
-        <span>{formatEuro(min)}</span>
-        <span className="text-success font-medium">Tetto: {formatEuro(result.tettoMassimo)}</span>
-        <span>{formatEuro(max)}</span>
-      </div>
-
-      {/* Key metrics */}
-      <div className="grid grid-cols-2 gap-x-3 gap-y-1 text-xs">
-        <div className="flex justify-between">
-          <span className="text-muted-foreground">Vendita</span>
-          <span className="font-mono">{formatEuro(result.prezzoVendita)}</span>
-        </div>
-        <div className="flex justify-between">
-          <span className="text-muted-foreground">ROI</span>
-          <span className={`font-mono font-semibold ${result.roi >= 50 ? 'text-success' : result.roi >= 30 ? 'text-warning' : 'text-danger'}`}>
-            {formatPercent(result.roi)}
-          </span>
-        </div>
-        <div className="flex justify-between">
-          <span className="text-muted-foreground">Utile</span>
-          <span className={`font-mono font-semibold ${result.utileNetto >= 0 ? 'text-success' : 'text-danger'}`}>
-            {formatEuro(result.utileNetto)}
-          </span>
-        </div>
-        <div className="flex justify-between">
-          <span className="text-muted-foreground">Margine</span>
-          <span className="font-mono">{formatPercent(result.margine)}</span>
+          <div className="flex justify-between">
+            <span className="text-muted-foreground">ROI</span>
+            <span className={`font-mono font-semibold ${result.roi >= 50 ? 'text-success' : result.roi >= 30 ? 'text-warning' : 'text-danger'}`}>
+              {formatPercent(result.roi)}
+            </span>
+          </div>
+          <div className="flex justify-between">
+            <span className="text-muted-foreground">Utile</span>
+            <span className={`font-mono font-semibold ${result.utileNetto >= 0 ? 'text-success' : 'text-danger'}`}>
+              {formatEuro(result.utileNetto)}
+            </span>
+          </div>
+          <div className="flex justify-between">
+            <span className="text-muted-foreground">Margine</span>
+            <span className="font-mono">{formatPercent(result.margine)}</span>
+          </div>
         </div>
       </div>
-    </div>
+    </TooltipProvider>
   );
 }
