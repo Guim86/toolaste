@@ -273,6 +273,7 @@ export function ExpensesSection({ project, onUpdate }: Props) {
             key={cat.id}
             category={cat}
             durataOperazione={project.durataOperazione}
+            project={cat.id === 'vendita' ? project : undefined}
             onUpdateItem={(itemId, updates) => updateItem(cat.id, itemId, updates)}
             onAddItem={() => addItem(cat.id)}
             onRemoveItem={(itemId) => removeItem(cat.id, itemId)}
