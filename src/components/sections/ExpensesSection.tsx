@@ -135,37 +135,67 @@ function ExpenseRow({
 function CategorySection({
   category,
   durataOperazione,
+  project,
   onUpdateItem,
   onAddItem,
   onRemoveItem,
 }: {
   category: ExpenseCategory;
   durataOperazione: number;
+  project?: ProjectData;
   onUpdateItem: (itemId: string, updates: Partial<ExpenseItem>) => void;
   onAddItem: () => void;
   onRemoveItem: (itemId: string) => void;
 }) {
   const [open, setOpen] = useState(true);
-  const total = category.items.reduce((sum, item) => {
-    if (item.isPercentage) return sum; // calculated per scenario
+
+  const hasPercentageItems = category.items.some(i => i.isPercentage);
+  const isVendita = category.id === 'vendita';
+
+  const fixedTotal = category.items.reduce((sum, item) => {
+    if (item.isPercentage) return sum;
     if (item.isMonthly) return sum + item.amount * durataOperazione;
     return sum + item.amount;
   }, 0);
 
-  const isVendita = category.id === 'vendita';
+  // Calculate per-scenario totals when percentage items exist
+  const scenarioTotals = (hasPercentageItems && project)
+    ? project.saleScenarios.map(sc => {
+        const prezzoVendita = project.mq * sc.euroPerMq;
+        const pctTotal = category.items.reduce((sum, item) => {
+          if (item.isPercentage && item.percentage) {
+            return sum + prezzoVendita * (item.percentage / 100);
+          }
+          return sum;
+        }, 0);
+        return { name: sc.name, total: fixedTotal + pctTotal, hasData: sc.euroPerMq > 0 };
+      })
+    : null;
+
+  const showScenarios = scenarioTotals && scenarioTotals.some(s => s.hasData);
 
   return (
     <Collapsible open={open} onOpenChange={setOpen}>
       <CollapsibleTrigger className="flex items-center justify-between w-full py-2 hover:bg-muted/50 rounded px-2 -mx-2">
         <span className="text-sm font-medium">{category.label}</span>
         <div className="flex items-center gap-2">
-          <span className="font-mono text-sm text-muted-foreground">{formatEuro(total)}</span>
+          {showScenarios ? (
+            <div className="flex items-center gap-1.5 flex-wrap justify-end">
+              {scenarioTotals!.map((s, i) => (
+                <span key={i} className="font-mono text-[11px] text-muted-foreground">
+                  {s.name}: {formatEuro(s.total)}
+                  {i < scenarioTotals!.length - 1 && <span className="ml-1.5 text-border">|</span>}
+                </span>
+              ))}
+            </div>
+          ) : (
+            <span className="font-mono text-sm text-muted-foreground">{formatEuro(fixedTotal)}</span>
+          )}
           <ChevronDown className={`h-4 w-4 transition-transform ${open ? 'rotate-180' : ''}`} />
         </div>
       </CollapsibleTrigger>
       <CollapsibleContent className="space-y-2 pl-2 pt-1">
         {category.items.map(item => {
-          // Special rendering for agency item in vendita category
           if (isVendita && item.id === 'agenzia') {
             return (
               <AgencyRow
