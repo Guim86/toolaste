@@ -1,7 +1,7 @@
 import { useMemo } from 'react';
 import type { ProjectData, ScenarioResult } from '@/types/project';
 import { calcScenarioResult, getPurchaseRange } from '@/utils/calculations';
-import { FeasibilityBar } from './FeasibilityBar';
+import { FeasibilityBar, esitoConfig } from './FeasibilityBar';
 import { formatEuro } from '@/utils/formatting';
 import { ScrollArea } from '@/components/ui/scroll-area';
 
