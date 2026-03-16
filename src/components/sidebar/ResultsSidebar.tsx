@@ -47,8 +47,8 @@ export function ResultsSidebar({ project }: Props) {
             <>
               {/* Tetto massimo per scenario */}
               <div className="space-y-1">
-                <h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">
-                  Tetto massimo per scenario
+              <h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">
+                  Tetto Max per scenario
                 </h3>
                 {results.map(r => (
                   <div key={r.scenarioId} className="flex justify-between items-center py-1">
