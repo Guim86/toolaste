@@ -112,7 +112,7 @@ export function FeasibilityBar({ result, purchaseRange, currentPrice, roiThresho
           </div>
           <div className="flex justify-between">
             <span className="text-muted-foreground">ROI</span>
-            <span className={`font-mono font-semibold ${result.roi >= 50 ? 'text-success' : result.roi >= 30 ? 'text-warning' : 'text-danger'}`}>
+            <span className={`font-mono font-semibold ${result.roi >= roiThresholds.ottima ? 'text-success' : result.roi >= roiThresholds.borderline ? 'text-warning' : 'text-danger'}`}>
               {formatPercent(result.roi)}
             </span>
           </div>

@@ -143,7 +143,7 @@ export function calcScenarioResult(
     utileNettoMensile,
     roiMensile,
     tettoMassimo,
-    esito: getEsito(roi),
+    esito: getEsito(roi, project.roiThresholds),
     spesaVenditaTotale: saleExpenses,
   };
 }

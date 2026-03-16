@@ -105,6 +105,12 @@ export function createDefaultProject(): ProjectData {
     durataOperazione: 12,
     minROI: 30,
     minUtileNetto: 20000,
+    roiThresholds: {
+      borderline: 25,
+      conviene: 30,
+      ottima: 40,
+      eccellente: 50,
+    },
     prezzoBase: 0,
     offertaMinima: 0,
     rilancioMinimo: 1000,
