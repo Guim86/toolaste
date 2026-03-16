@@ -4,10 +4,19 @@ import { ProjectData, createDefaultProject } from '@/types/project';
 const STORAGE_KEY = 'toolaste_projects';
 const ACTIVE_KEY = 'toolaste_active';
 
+const DEFAULT_ROI_THRESHOLDS = { borderline: 25, conviene: 30, ottima: 40, eccellente: 50 };
+
+function migrateProject(p: ProjectData): ProjectData {
+  return {
+    ...p,
+    roiThresholds: p.roiThresholds ?? DEFAULT_ROI_THRESHOLDS,
+  };
+}
+
 function loadProjects(): ProjectData[] {
   try {
     const raw = localStorage.getItem(STORAGE_KEY);
-    return raw ? JSON.parse(raw) : [];
+    return raw ? (JSON.parse(raw) as ProjectData[]).map(migrateProject) : [];
   } catch {
     return [];
   }
