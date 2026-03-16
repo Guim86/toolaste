@@ -99,12 +99,38 @@ export function ResultsSidebar({ project }: Props) {
                 <h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">
                   Barre di fattibilità
                 </h3>
+
+                {/* Legenda */}
+                <div className="flex flex-wrap gap-x-3 gap-y-1 text-[10px]">
+                  <span className="flex items-center gap-1">
+                    <span className={`inline-block w-2 h-2 rounded-full ${esitoConfig.non_conviene.dotClass}`} />
+                    &lt;{project.roiThresholds.borderline}%
+                  </span>
+                  <span className="flex items-center gap-1">
+                    <span className={`inline-block w-2 h-2 rounded-full ${esitoConfig.borderline.dotClass}`} />
+                    {project.roiThresholds.borderline}–{project.roiThresholds.conviene - 0.01}%
+                  </span>
+                  <span className="flex items-center gap-1">
+                    <span className={`inline-block w-2 h-2 rounded-full ${esitoConfig.conviene.dotClass}`} />
+                    {project.roiThresholds.conviene}–{project.roiThresholds.ottima - 0.01}%
+                  </span>
+                  <span className="flex items-center gap-1">
+                    <span className={`inline-block w-2 h-2 rounded-full ${esitoConfig.ottima.dotClass}`} />
+                    {project.roiThresholds.ottima}–{project.roiThresholds.eccellente - 0.01}%
+                  </span>
+                  <span className="flex items-center gap-1">
+                    <span className={`inline-block w-2 h-2 rounded-full ${esitoConfig.eccellente.dotClass}`} />
+                    ≥{project.roiThresholds.eccellente}%
+                  </span>
+                </div>
+
                 {results.map(r => (
                   <FeasibilityBar
                     key={r.scenarioId}
                     result={r}
                     purchaseRange={purchaseRange}
                     currentPrice={project.prezzoAggiudicazione}
+                    roiThresholds={project.roiThresholds}
                   />
                 ))}
               </div>
