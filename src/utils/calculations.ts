@@ -101,11 +101,11 @@ function calcTettoMassimo(
   return Math.max(0, Math.min(pRoi, pUtile));
 }
 
-function getEsito(roi: number): ScenarioResult['esito'] {
-  if (roi < 15) return 'non_conviene';
-  if (roi < 30) return 'borderline';
-  if (roi < 50) return 'conviene';
-  if (roi < 80) return 'ottima';
+function getEsito(roi: number, thresholds: import('@/types/project').RoiThresholds): ScenarioResult['esito'] {
+  if (roi < thresholds.borderline) return 'non_conviene';
+  if (roi < thresholds.conviene) return 'borderline';
+  if (roi < thresholds.ottima) return 'conviene';
+  if (roi < thresholds.eccellente) return 'ottima';
   return 'eccellente';
 }
 
