@@ -27,6 +27,13 @@ export type AuctionStartFrom = 'base' | 'offertaMinima';
 export type AuctionMode = 'manuale' | 'simulazione';
 export type TaxBase = 'prezzoAsta' | 'catastale';
 
+export interface RoiThresholds {
+  borderline: number;   // default 25 — da qui inizia "borderline"
+  conviene: number;     // default 30 — da qui inizia "conviene"
+  ottima: number;       // default 40 — da qui inizia "ottima"
+  eccellente: number;   // default 50 — da qui inizia "eccellente"
+}
+
 export interface ProjectData {
   // Info progetto
   nome: string;
@@ -38,6 +45,7 @@ export interface ProjectData {
   // Parametri decisionali
   minROI: number; // %
   minUtileNetto: number; // €
+  roiThresholds: RoiThresholds;
 
   // Simulazione asta
   prezzoBase: number;
@@ -97,6 +105,12 @@ export function createDefaultProject(): ProjectData {
     durataOperazione: 12,
     minROI: 30,
     minUtileNetto: 20000,
+    roiThresholds: {
+      borderline: 25,
+      conviene: 30,
+      ottima: 40,
+      eccellente: 50,
+    },
     prezzoBase: 0,
     offertaMinima: 0,
     rilancioMinimo: 1000,
