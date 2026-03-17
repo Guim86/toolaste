@@ -148,20 +148,20 @@ export function ResultsSidebar({ project }: Props) {
                     </div>
                     <div className="grid grid-cols-2 gap-1 text-xs">
                       <div className="flex justify-between">
-                        <span className="text-muted-foreground">Costo totale</span>
-                        <span className="font-mono">{formatEuro(r.costoTotale)}</span>
+                        <span className="text-muted-foreground">ROI/mese</span>
+                        <span className="font-mono">{r.roiMensile.toFixed(1)}%</span>
                       </div>
                       <div className="flex justify-between">
-                        <span className="text-muted-foreground">Profitto lordo</span>
-                        <span className="font-mono">{formatEuro(r.profittoLordo)}</span>
+                        <span className="text-muted-foreground">Costo totale operazione</span>
+                        <span className="font-mono">{formatEuro(r.costoTotale)}</span>
                       </div>
                       <div className="flex justify-between">
                         <span className="text-muted-foreground">Utile/mese</span>
                         <span className="font-mono">{formatEuro(r.utileNettoMensile)}</span>
                       </div>
                       <div className="flex justify-between">
-                        <span className="text-muted-foreground">ROI/mese</span>
-                        <span className="font-mono">{r.roiMensile.toFixed(1)}%</span>
+                        <span className="text-muted-foreground">Profitto lordo</span>
+                        <span className="font-mono">{formatEuro(r.profittoLordo)}</span>
                       </div>
                     </div>
                   </div>

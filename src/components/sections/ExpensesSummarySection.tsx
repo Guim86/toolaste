@@ -109,7 +109,7 @@ export function ExpensesSummarySection({ project }: Props) {
             <p className="text-xs font-semibold mb-1">Totale (per scenario)</p>
             {scenarioSales.map(s => (
               <div key={s.name} className="flex justify-between items-center py-0.5 pl-3">
-                <Badge variant="outline" className="text-xs font-normal">{s.name}</Badge>
+                <span className="text-xs text-muted-foreground">{s.name}</span>
                 <span className="font-mono text-sm font-semibold">{formatEuro(fixedTotal + s.saleExpense)}</span>
               </div>
             ))}

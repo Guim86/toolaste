@@ -180,7 +180,7 @@ export function createDefaultExpenses(): ExpenseCategory[] {
         { id: 'infissi', label: 'Infissi', amount: 0, status: 'stimata' },
         { id: 'tinteggiatura', label: 'Tinteggiatura', amount: 0, status: 'stimata' },
         { id: 'pulizia', label: 'Pulizia', amount: 0, status: 'stimata' },
-        { id: 'sgombero', label: 'Sgombero', amount: 0, status: 'stimata' },
+        { id: 'sgombero', label: 'Sgombero rifiuti', amount: 0, status: 'stimata' },
       ],
     },
     {
