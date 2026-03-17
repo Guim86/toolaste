@@ -114,7 +114,7 @@ export function createDefaultProject(): ProjectData {
     prezzoBase: 0,
     offertaMinima: 0,
     rilancioMinimo: 1000,
-    startFrom: 'base',
+    startFrom: 'offertaMinima',
     auctionMode: 'manuale',
     numRilanci: 0,
     prezzoAggiudicazione: 0,
