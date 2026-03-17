@@ -45,7 +45,7 @@ export function ProjectInfoSection({ project, onUpdate }: Props) {
             <Input
               value={project.indirizzo}
               onChange={e => onUpdate({ indirizzo: e.target.value })}
-              placeholder="Es. Via Roma 10"
+              placeholder="Es. Corso Magenta 23"
               className="text-sm"
             />
           </div>
