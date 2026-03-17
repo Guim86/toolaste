@@ -4,6 +4,7 @@ import { DecisionParametersSection } from '@/components/sections/DecisionParamet
 import { AuctionSimulationSection } from '@/components/sections/AuctionSimulationSection';
 import { SaleScenariosSection } from '@/components/sections/SaleScenariosSection';
 import { ExpensesSection } from '@/components/sections/ExpensesSection';
+import { ExpensesSummarySection } from '@/components/sections/ExpensesSummarySection';
 import { NotesSection } from '@/components/sections/NotesSection';
 import { ResultsSidebar } from '@/components/sidebar/ResultsSidebar';
 import { ProjectManager } from '@/components/ProjectManager';
@@ -59,6 +60,7 @@ const Index = () => {
                 <AuctionSimulationSection project={project} onUpdate={updateProject} />
                 <SaleScenariosSection project={project} onUpdate={updateProject} />
                 <ExpensesSection project={project} onUpdate={updateProject} />
+                <ExpensesSummarySection project={project} />
                 <NotesSection project={project} onUpdate={updateProject} />
               </div>
             </ScrollArea>
@@ -81,6 +83,7 @@ const Index = () => {
             <AuctionSimulationSection project={project} onUpdate={updateProject} />
             <SaleScenariosSection project={project} onUpdate={updateProject} />
             <ExpensesSection project={project} onUpdate={updateProject} />
+            <ExpensesSummarySection project={project} />
             <NotesSection project={project} onUpdate={updateProject} />
             <ResultsSidebar project={project} />
           </div>
