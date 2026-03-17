@@ -60,6 +60,7 @@ const Index = () => {
                 <AuctionSimulationSection project={project} onUpdate={updateProject} />
                 <SaleScenariosSection project={project} onUpdate={updateProject} />
                 <ExpensesSection project={project} onUpdate={updateProject} />
+                <ExpensesSummarySection project={project} />
                 <NotesSection project={project} onUpdate={updateProject} />
               </div>
             </ScrollArea>
