@@ -145,7 +145,7 @@ export function createDefaultExpenses(): ExpenseCategory[] {
         { id: 'cancellazione_ipoteca', label: 'Cancellazione ipoteca', amount: 0, status: 'stimata' },
         { id: 'compenso_delegato', label: 'Compenso delegato', amount: 0, status: 'stimata' },
         { id: 'spese_procedura', label: 'Spese procedura', amount: 0, status: 'stimata' },
-        { id: 'saldo_condominiali', label: 'Saldo condominiali', amount: 0, status: 'stimata' },
+        { id: 'saldo_condominiali', label: 'Saldo rate condominiali', amount: 0, status: 'stimata' },
         { id: 'spese_legali', label: 'Spese legali', amount: 0, status: 'stimata' },
         { id: 'liberazione_immobile', label: 'Liberazione immobile', amount: 0, status: 'stimata' },
       ],
