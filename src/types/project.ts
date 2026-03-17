@@ -104,7 +104,7 @@ export function createDefaultProject(): ProjectData {
     mq: 0,
     durataOperazione: 12,
     minROI: 30,
-    minUtileNetto: 20000,
+    minUtileNetto: 0,
     roiThresholds: {
       borderline: 25,
       conviene: 30,
