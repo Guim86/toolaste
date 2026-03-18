@@ -18,7 +18,7 @@ export const esitoConfig: Record<ScenarioResult['esito'], { label: string; class
   eccellente: { label: 'Eccellente', className: 'bg-primary text-primary-foreground', dotClass: 'bg-primary' },
 };
 
-export function FeasibilityBar({ result, purchaseRange, currentPrice, roiThresholds }: Props) {
+export function FeasibilityBar({ result, purchaseRange, currentPrice, roiThresholds, euroPerMq }: Props) {
   const { min, max } = purchaseRange;
   const range = max - min;
   if (range <= 0) return null;
