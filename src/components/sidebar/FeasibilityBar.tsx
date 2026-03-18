@@ -7,6 +7,7 @@ interface Props {
   purchaseRange: { min: number; max: number };
   currentPrice: number;
   roiThresholds: RoiThresholds;
+  euroPerMq: number;
 }
 
 export const esitoConfig: Record<ScenarioResult['esito'], { label: string; className: string; dotClass: string }> = {
@@ -17,7 +18,7 @@ export const esitoConfig: Record<ScenarioResult['esito'], { label: string; class
   eccellente: { label: 'Eccellente', className: 'bg-primary text-primary-foreground', dotClass: 'bg-primary' },
 };
 
-export function FeasibilityBar({ result, purchaseRange, currentPrice, roiThresholds }: Props) {
+export function FeasibilityBar({ result, purchaseRange, currentPrice, roiThresholds, euroPerMq }: Props) {
   const { min, max } = purchaseRange;
   const range = max - min;
   if (range <= 0) return null;
@@ -31,7 +32,7 @@ export function FeasibilityBar({ result, purchaseRange, currentPrice, roiThresho
     <TooltipProvider delayDuration={200}>
       <div className="space-y-2">
         <div className="flex items-center justify-between">
-          <span className="text-xs font-medium truncate">{result.scenarioName}</span>
+          <span className="text-xs font-medium truncate">{result.scenarioName} ({euroPerMq} €/mq)</span>
           <span className={`text-[10px] px-2 py-0.5 rounded-full font-medium ${esito.className}`}>
             {esito.label}
           </span>
@@ -74,7 +75,7 @@ export function FeasibilityBar({ result, purchaseRange, currentPrice, roiThresho
               />
             </TooltipTrigger>
             <TooltipContent side="top">
-              <p className="text-xs">Tetto Max: {formatEuro(result.tettoMassimo)}</p>
+              <p className="text-xs">Prezzo agg. max: {formatEuro(result.tettoMassimo)}</p>
               <p className="text-xs text-muted-foreground">Prezzo massimo di acquisto per rispettare ROI e utile minimo impostati</p>
             </TooltipContent>
           </Tooltip>
@@ -100,7 +101,7 @@ export function FeasibilityBar({ result, purchaseRange, currentPrice, roiThresho
         {/* Labels */}
         <div className="flex justify-between text-[10px] text-muted-foreground font-mono">
           <span>{formatEuro(min)}</span>
-          <span className="text-success font-medium">Tetto Max: {formatEuro(result.tettoMassimo)}</span>
+          <span className="text-success font-medium">Prezzo agg. max: {formatEuro(result.tettoMassimo)}</span>
           <span>{formatEuro(max)}</span>
         </div>
 

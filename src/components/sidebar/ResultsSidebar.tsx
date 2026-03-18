@@ -48,16 +48,19 @@ export function ResultsSidebar({ project }: Props) {
               {/* Tetto massimo per scenario */}
               <div className="space-y-1">
               <h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">
-                  Tetto Max per scenario
+                  Prezzo aggiudicazione max
                 </h3>
-                {results.map(r => (
-                  <div key={r.scenarioId} className="flex justify-between items-center py-1">
-                    <span className="text-sm">{r.scenarioName}</span>
-                    <span className="font-mono text-sm font-semibold text-primary">
-                      {formatEuro(r.tettoMassimo)}
-                    </span>
-                  </div>
-                ))}
+                {results.map(r => {
+                  const epm = project.saleScenarios.find(s => s.id === r.scenarioId)?.euroPerMq ?? 0;
+                  return (
+                    <div key={r.scenarioId} className="flex justify-between items-center py-1">
+                      <span className="text-sm">{r.scenarioName} ({epm} €/mq)</span>
+                      <span className="font-mono text-sm font-semibold text-primary">
+                        {formatEuro(r.tettoMassimo)}
+                      </span>
+                    </div>
+                  );
+                })}
               </div>
 
               {/* Feasibility zone summary */}
@@ -131,6 +134,7 @@ export function ResultsSidebar({ project }: Props) {
                     purchaseRange={purchaseRange}
                     currentPrice={project.prezzoAggiudicazione}
                     roiThresholds={project.roiThresholds}
+                    euroPerMq={project.saleScenarios.find(s => s.id === r.scenarioId)?.euroPerMq ?? 0}
                   />
                 ))}
               </div>
@@ -138,12 +142,14 @@ export function ResultsSidebar({ project }: Props) {
               {/* Detailed results per scenario */}
               <div className="space-y-3">
                 <h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">
-                  Dettaglio scenari
+                  Dettaglio scenari post-rivendita
                 </h3>
-                {results.map(r => (
+                {results.map(r => {
+                  const epm = project.saleScenarios.find(s => s.id === r.scenarioId)?.euroPerMq ?? 0;
+                  return (
                   <div key={r.scenarioId} className="border rounded-lg p-3 space-y-2">
                     <div className="flex items-center justify-between">
-                      <span className="text-sm font-medium">{r.scenarioName}</span>
+                      <span className="text-sm font-medium">{r.scenarioName} ({epm} €/mq)</span>
                       <span className="font-mono text-xs">{formatEuro(r.prezzoVendita)}</span>
                     </div>
                     <div className="grid grid-cols-2 gap-1 text-xs">
@@ -165,7 +171,8 @@ export function ResultsSidebar({ project }: Props) {
                       </div>
                     </div>
                   </div>
-                ))}
+                  );
+                })}
               </div>
             </>
           )}
