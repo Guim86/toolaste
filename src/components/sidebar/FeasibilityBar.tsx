@@ -75,7 +75,7 @@ export function FeasibilityBar({ result, purchaseRange, currentPrice, roiThresho
               />
             </TooltipTrigger>
             <TooltipContent side="top">
-              <p className="text-xs">Tetto Max: {formatEuro(result.tettoMassimo)}</p>
+              <p className="text-xs">Prezzo agg. max: {formatEuro(result.tettoMassimo)}</p>
               <p className="text-xs text-muted-foreground">Prezzo massimo di acquisto per rispettare ROI e utile minimo impostati</p>
             </TooltipContent>
           </Tooltip>
