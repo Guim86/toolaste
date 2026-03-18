@@ -32,7 +32,7 @@ export function FeasibilityBar({ result, purchaseRange, currentPrice, roiThresho
     <TooltipProvider delayDuration={200}>
       <div className="space-y-2">
         <div className="flex items-center justify-between">
-          <span className="text-xs font-medium truncate">{result.scenarioName}</span>
+          <span className="text-xs font-medium truncate">{result.scenarioName} ({euroPerMq} €/mq)</span>
           <span className={`text-[10px] px-2 py-0.5 rounded-full font-medium ${esito.className}`}>
             {esito.label}
           </span>
