@@ -48,16 +48,19 @@ export function ResultsSidebar({ project }: Props) {
               {/* Tetto massimo per scenario */}
               <div className="space-y-1">
               <h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">
-                  Tetto Max per scenario
+                  Prezzo aggiudicazione max
                 </h3>
-                {results.map(r => (
-                  <div key={r.scenarioId} className="flex justify-between items-center py-1">
-                    <span className="text-sm">{r.scenarioName}</span>
-                    <span className="font-mono text-sm font-semibold text-primary">
-                      {formatEuro(r.tettoMassimo)}
-                    </span>
-                  </div>
-                ))}
+                {results.map(r => {
+                  const epm = project.saleScenarios.find(s => s.id === r.scenarioId)?.euroPerMq ?? 0;
+                  return (
+                    <div key={r.scenarioId} className="flex justify-between items-center py-1">
+                      <span className="text-sm">{r.scenarioName} ({epm} €/mq)</span>
+                      <span className="font-mono text-sm font-semibold text-primary">
+                        {formatEuro(r.tettoMassimo)}
+                      </span>
+                    </div>
+                  );
+                })}
               </div>
 
               {/* Feasibility zone summary */}
