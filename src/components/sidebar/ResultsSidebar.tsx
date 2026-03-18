@@ -134,6 +134,7 @@ export function ResultsSidebar({ project }: Props) {
                     purchaseRange={purchaseRange}
                     currentPrice={project.prezzoAggiudicazione}
                     roiThresholds={project.roiThresholds}
+                    euroPerMq={project.saleScenarios.find(s => s.id === r.scenarioId)?.euroPerMq ?? 0}
                   />
                 ))}
               </div>
