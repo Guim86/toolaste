@@ -171,7 +171,8 @@ export function ResultsSidebar({ project }: Props) {
                       </div>
                     </div>
                   </div>
-                ))}
+                  );
+                })}
               </div>
             </>
           )}

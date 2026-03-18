@@ -101,7 +101,7 @@ export function FeasibilityBar({ result, purchaseRange, currentPrice, roiThresho
         {/* Labels */}
         <div className="flex justify-between text-[10px] text-muted-foreground font-mono">
           <span>{formatEuro(min)}</span>
-          <span className="text-success font-medium">Tetto Max: {formatEuro(result.tettoMassimo)}</span>
+          <span className="text-success font-medium">Prezzo agg. max: {formatEuro(result.tettoMassimo)}</span>
           <span>{formatEuro(max)}</span>
         </div>
 
