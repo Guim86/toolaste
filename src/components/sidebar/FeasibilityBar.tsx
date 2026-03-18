@@ -7,6 +7,7 @@ interface Props {
   purchaseRange: { min: number; max: number };
   currentPrice: number;
   roiThresholds: RoiThresholds;
+  euroPerMq: number;
 }
 
 export const esitoConfig: Record<ScenarioResult['esito'], { label: string; className: string; dotClass: string }> = {
