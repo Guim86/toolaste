@@ -42,23 +42,56 @@ const Index = () => {
   return (
     <div className="h-screen flex flex-col">
       {/* Header */}
-      <header className="border-b bg-card px-4 py-2 flex items-center justify-between shrink-0">
-        <div className="flex items-center gap-3">
-          <h1 className="text-lg font-bold tracking-tight">
-            TOO-LA<span className="text-primary">(S)</span>TE
-          </h1>
-          <span className="text-xs text-muted-foreground hidden sm:block">Analisi Aste Immobiliari</span>
+      <header className="border-b bg-card px-4 py-2 shrink-0">
+        {/* Desktop header */}
+        <div className="hidden sm:flex items-center justify-between">
+          <div className="flex items-center gap-3">
+            <h1 className="text-lg font-bold tracking-tight">
+              TOO-LA<span className="text-primary">(S)</span>TE
+            </h1>
+            <span className="text-xs text-muted-foreground">Analisi Aste Immobiliari</span>
+          </div>
+          <ProjectManager
+            projects={projects}
+            activeId={activeId}
+            onSelect={setActiveId}
+            onNew={createNew}
+            onDuplicate={duplicateProject}
+            onDelete={deleteProject}
+            onExport={exportProject}
+            onImport={importProject}
+          />
         </div>
-        <ProjectManager
-          projects={projects}
-          activeId={activeId}
-          onSelect={setActiveId}
-          onNew={createNew}
-          onDuplicate={duplicateProject}
-          onDelete={deleteProject}
-          onExport={exportProject}
-          onImport={importProject}
-        />
+        {/* Mobile header */}
+        <div className="sm:hidden space-y-2">
+          <div className="flex items-center justify-between">
+            <h1 className="text-lg font-bold tracking-tight">
+              TOO-LA<span className="text-primary">(S)</span>TE
+            </h1>
+            <ProjectManager
+              projects={projects}
+              activeId={activeId}
+              onSelect={setActiveId}
+              onNew={createNew}
+              onDuplicate={duplicateProject}
+              onDelete={deleteProject}
+              onExport={exportProject}
+              onImport={importProject}
+              mobileMode
+            />
+          </div>
+          <ProjectManager
+            projects={projects}
+            activeId={activeId}
+            onSelect={setActiveId}
+            onNew={createNew}
+            onDuplicate={duplicateProject}
+            onDelete={deleteProject}
+            onExport={exportProject}
+            onImport={importProject}
+            selectOnly
+          />
+        </div>
       </header>
 
       {/* Desktop — resizable */}

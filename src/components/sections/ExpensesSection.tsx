@@ -54,7 +54,7 @@ function AgencyRow({
             }
             className="scale-75"
           />
-          <span className="text-[10px] text-muted-foreground">%</span>
+          <span className="text-[10px] text-muted-foreground">A percentuale</span>
         </div>
       </div>
       <div className="flex items-center gap-2 flex-wrap">
