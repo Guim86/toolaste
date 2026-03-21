@@ -182,11 +182,14 @@ function CategorySection({
 
   return (
     <Collapsible open={open} onOpenChange={setOpen}>
-      <CollapsibleTrigger className="flex items-center justify-between w-full py-2 hover:bg-muted/50 rounded px-2 -mx-2">
-        <span className="text-sm font-medium">{category.label}</span>
+      <CollapsibleTrigger className="flex flex-col sm:flex-row sm:items-center sm:justify-between w-full py-2 hover:bg-muted/50 rounded px-2 -mx-2 gap-0.5">
+        <div className="flex items-center justify-between w-full sm:w-auto">
+          <span className="text-sm font-medium">{category.label}</span>
+          <ChevronDown className={`h-4 w-4 transition-transform sm:hidden ${open ? 'rotate-180' : ''}`} />
+        </div>
         <div className="flex items-center gap-2">
           {showScenarios ? (
-            <div className="flex items-center gap-1.5 flex-wrap justify-end">
+            <div className="flex items-center gap-1.5 flex-wrap">
               {scenarioTotals!.map((s, i) => (
                 <span key={i} className="font-mono text-[11px] text-muted-foreground">
                   {s.name}: {formatEuro(s.total)}
@@ -197,7 +200,7 @@ function CategorySection({
           ) : (
             <span className="font-mono text-sm text-muted-foreground">{formatEuro(fixedTotal)}</span>
           )}
-          <ChevronDown className={`h-4 w-4 transition-transform ${open ? 'rotate-180' : ''}`} />
+          <ChevronDown className={`h-4 w-4 transition-transform hidden sm:block ${open ? 'rotate-180' : ''}`} />
         </div>
       </CollapsibleTrigger>
       <CollapsibleContent className="space-y-2 pl-2 pt-1">
