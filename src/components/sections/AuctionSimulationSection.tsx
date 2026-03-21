@@ -41,7 +41,7 @@ export function AuctionSimulationSection({ project, onUpdate }: Props) {
         </CardTitle>
       </CardHeader>
       <CardContent className="space-y-4">
-        <div className="grid grid-cols-3 gap-3">
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
           <CurrencyInput value={project.prezzoBase} onChange={v => onUpdate({ prezzoBase: v })} label="Prezzo base" />
           <CurrencyInput value={project.offertaMinima} onChange={v => onUpdate({ offertaMinima: v })} label="Offerta minima" />
           <CurrencyInput value={project.rilancioMinimo} onChange={v => handleSimChange('rilancioMinimo', v)} label="Rilancio minimo" />

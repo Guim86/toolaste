@@ -10,6 +10,8 @@ import { ResultsSidebar } from '@/components/sidebar/ResultsSidebar';
 import { ProjectManager } from '@/components/ProjectManager';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { ResizablePanelGroup, ResizablePanel, ResizableHandle } from '@/components/ui/resizable';
+import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
+import { MobileStepper } from '@/components/mobile/MobileStepper';
 
 const Index = () => {
   const {
@@ -26,6 +28,16 @@ const Index = () => {
   } = useProject();
 
   if (!project) return null;
+
+  const steps = [
+    { label: 'Info Progetto', content: <ProjectInfoSection project={project} onUpdate={updateProject} /> },
+    { label: 'Parametri Decisionali', content: <DecisionParametersSection project={project} onUpdate={updateProject} /> },
+    { label: 'Simulazione Asta', content: <AuctionSimulationSection project={project} onUpdate={updateProject} /> },
+    { label: 'Scenari di Vendita', content: <SaleScenariosSection project={project} onUpdate={updateProject} /> },
+    { label: 'Spese', content: <ExpensesSection project={project} onUpdate={updateProject} /> },
+    { label: 'Riepilogo Spese', content: <ExpensesSummarySection project={project} /> },
+    { label: 'Note', content: <NotesSection project={project} onUpdate={updateProject} /> },
+  ];
 
   return (
     <div className="h-screen flex flex-col">
@@ -49,7 +61,7 @@ const Index = () => {
         />
       </header>
 
-      {/* Main layout — resizable */}
+      {/* Desktop — resizable */}
       <div className="flex-1 overflow-hidden hidden lg:block">
         <ResizablePanelGroup direction="horizontal" className="h-full">
           <ResizablePanel defaultSize={60} minSize={35}>
@@ -74,20 +86,20 @@ const Index = () => {
         </ResizablePanelGroup>
       </div>
 
-      {/* Mobile fallback — stacked */}
-      <div className="flex-1 overflow-hidden lg:hidden">
-        <ScrollArea className="h-full">
-          <div className="max-w-2xl mx-auto p-4 space-y-4 pb-8">
-            <ProjectInfoSection project={project} onUpdate={updateProject} />
-            <DecisionParametersSection project={project} onUpdate={updateProject} />
-            <AuctionSimulationSection project={project} onUpdate={updateProject} />
-            <SaleScenariosSection project={project} onUpdate={updateProject} />
-            <ExpensesSection project={project} onUpdate={updateProject} />
-            <ExpensesSummarySection project={project} />
-            <NotesSection project={project} onUpdate={updateProject} />
+      {/* Mobile — tabs + stepper */}
+      <div className="flex-1 overflow-hidden lg:hidden flex flex-col">
+        <Tabs defaultValue="dati" className="flex-1 flex flex-col overflow-hidden">
+          <TabsList className="mx-4 mt-2 shrink-0">
+            <TabsTrigger value="dati" className="flex-1">Dati</TabsTrigger>
+            <TabsTrigger value="risultati" className="flex-1">Risultati</TabsTrigger>
+          </TabsList>
+          <TabsContent value="dati" className="flex-1 overflow-hidden m-0">
+            <MobileStepper steps={steps} />
+          </TabsContent>
+          <TabsContent value="risultati" className="flex-1 overflow-hidden m-0">
             <ResultsSidebar project={project} />
-          </div>
-        </ScrollArea>
+          </TabsContent>
+        </Tabs>
       </div>
     </div>
   );

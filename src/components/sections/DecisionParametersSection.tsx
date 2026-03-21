@@ -44,7 +44,7 @@ export function DecisionParametersSection({ project, onUpdate }: Props) {
 
         <div>
           <p className="text-xs font-medium text-muted-foreground mb-2">Soglie ROI (esito)</p>
-          <div className="grid grid-cols-4 gap-2">
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
             <CurrencyInput
               value={project.roiThresholds.borderline}
               onChange={v => updateThreshold('borderline', v)}
