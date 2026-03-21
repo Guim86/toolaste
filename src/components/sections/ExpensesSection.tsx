@@ -42,41 +42,45 @@ function AgencyRow({
   const isPercentage = item.isPercentage ?? false;
 
   return (
-    <div className="flex items-center gap-2">
-      <span className="text-sm flex-1 min-w-0 truncate py-1">Agenzia</span>
-      <div className="flex items-center gap-1.5">
-        <span className="text-[10px] text-muted-foreground">Fisso</span>
-        <Switch
-          checked={isPercentage}
-          onCheckedChange={(checked) =>
-            onUpdate({ isPercentage: checked })
-          }
-          className="scale-75"
-        />
-        <span className="text-[10px] text-muted-foreground">%</span>
+    <div className="flex flex-col sm:flex-row sm:items-center gap-1 sm:gap-2">
+      <div className="flex items-center gap-2 min-w-0">
+        <span className="text-sm truncate py-1">Agenzia</span>
+        <div className="flex items-center gap-1.5">
+          <span className="text-[10px] text-muted-foreground">Fisso</span>
+          <Switch
+            checked={isPercentage}
+            onCheckedChange={(checked) =>
+              onUpdate({ isPercentage: checked })
+            }
+            className="scale-75"
+          />
+          <span className="text-[10px] text-muted-foreground">%</span>
+        </div>
       </div>
-      {isPercentage ? (
-        <CurrencyInput
-          value={item.percentage ?? 0}
-          onChange={v => onUpdate({ percentage: v })}
-          suffix="%"
-          decimals={2}
-          className="w-20"
-        />
-      ) : (
-        <CurrencyInput
-          value={item.amount}
-          onChange={v => onUpdate({ amount: v })}
-          className="w-28"
-        />
-      )}
-      <button
-        className={`text-[10px] px-2 py-0.5 rounded-full font-medium cursor-pointer ${statusColors[item.status]}`}
-        onClick={() => onUpdate({ status: nextStatus[item.status] })}
-        title="Clicca per cambiare stato"
-      >
-        {statusLabels[item.status]}
-      </button>
+      <div className="flex items-center gap-2 flex-wrap">
+        {isPercentage ? (
+          <CurrencyInput
+            value={item.percentage ?? 0}
+            onChange={v => onUpdate({ percentage: v })}
+            suffix="%"
+            decimals={2}
+            className="w-20"
+          />
+        ) : (
+          <CurrencyInput
+            value={item.amount}
+            onChange={v => onUpdate({ amount: v })}
+            className="w-24"
+          />
+        )}
+        <button
+          className={`text-[10px] px-2 py-0.5 rounded-full font-medium cursor-pointer ${statusColors[item.status]}`}
+          onClick={() => onUpdate({ status: nextStatus[item.status] })}
+          title="Clicca per cambiare stato"
+        >
+          {statusLabels[item.status]}
+        </button>
+      </div>
     </div>
   );
 }
