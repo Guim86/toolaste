@@ -134,7 +134,7 @@ export function AuctionSimulationSection({ project, onUpdate }: Props) {
                 checked={project.taxBase === 'catastale'}
                 onCheckedChange={v => onUpdate({ taxBase: v ? 'catastale' : 'prezzoAsta' })}
               />
-              <span className="text-xs text-muted-foreground">Prezzo-valore</span>
+              <span className="text-xs text-muted-foreground">Valore catastale</span>
             </div>
           </div>
           <div className="grid grid-cols-2 gap-3">
