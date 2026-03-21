@@ -44,7 +44,7 @@ export function SaleScenariosSection({ project, onUpdate }: Props) {
       </CardHeader>
       <CardContent className="space-y-3">
         {project.saleScenarios.map((scenario, i) => (
-          <div key={scenario.id} className="flex items-end gap-2">
+          <div key={scenario.id} className="flex flex-col sm:flex-row sm:items-end gap-2">
             <div className="flex-1">
               <label className="block text-xs font-medium text-muted-foreground mb-1">
                 {i < 3 ? '' : 'Nome'}
@@ -56,29 +56,31 @@ export function SaleScenariosSection({ project, onUpdate }: Props) {
                 placeholder="Nome scenario"
               />
             </div>
-            <CurrencyInput
-              value={scenario.euroPerMq}
-              onChange={v => updateScenario(scenario.id, { euroPerMq: v })}
-              label="€/mq"
-              suffix="€/mq"
-              className="w-32"
-            />
-            <div className="w-32">
-              <label className="block text-xs font-medium text-muted-foreground mb-1">Totale</label>
-              <div className="h-10 flex items-center px-3 bg-computed rounded-md font-mono text-sm">
-                {formatEuro(project.mq * scenario.euroPerMq)}
+            <div className="flex items-end gap-2">
+              <CurrencyInput
+                value={scenario.euroPerMq}
+                onChange={v => updateScenario(scenario.id, { euroPerMq: v })}
+                label="€/mq"
+                suffix="€/mq"
+                className="w-32"
+              />
+              <div className="w-32">
+                <label className="block text-xs font-medium text-muted-foreground mb-1">Totale</label>
+                <div className="h-10 flex items-center px-3 bg-computed rounded-md font-mono text-sm">
+                  {formatEuro(project.mq * scenario.euroPerMq)}
+                </div>
               </div>
+              {project.saleScenarios.length > 2 && (
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="h-10 w-10 shrink-0"
+                  onClick={() => removeScenario(scenario.id)}
+                >
+                  <X className="h-4 w-4" />
+                </Button>
+              )}
             </div>
-            {project.saleScenarios.length > 2 && (
-              <Button
-                variant="ghost"
-                size="icon"
-                className="h-10 w-10 shrink-0"
-                onClick={() => removeScenario(scenario.id)}
-              >
-                <X className="h-4 w-4" />
-              </Button>
-            )}
           </div>
         ))}
         <Button variant="outline" size="sm" onClick={addScenario} className="w-full">
