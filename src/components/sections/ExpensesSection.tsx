@@ -97,8 +97,8 @@ function ExpenseRow({
   onRemove?: () => void;
 }) {
   return (
-    <div className="flex items-center gap-2">
-      <div className="flex-1 min-w-0">
+    <div className="flex flex-col sm:flex-row sm:items-center gap-1 sm:gap-2">
+      <div className="min-w-0 sm:flex-1">
         {item.isCustom ? (
           <Input
             value={item.label}
@@ -110,28 +110,30 @@ function ExpenseRow({
           <span className="text-sm truncate block py-1">{item.label}</span>
         )}
       </div>
-      <CurrencyInput
-        value={item.amount}
-        onChange={v => onUpdate({ amount: v })}
-        className="w-28"
-      />
-      {item.isMonthly && (
-        <span className="text-xs text-muted-foreground whitespace-nowrap">
-          × {durataOperazione}m = {formatEuro(item.amount * durataOperazione)}
-        </span>
-      )}
-      <button
-        className={`text-[10px] px-2 py-0.5 rounded-full font-medium cursor-pointer ${statusColors[item.status]}`}
-        onClick={() => onUpdate({ status: nextStatus[item.status] })}
-        title="Clicca per cambiare stato"
-      >
-        {statusLabels[item.status]}
-      </button>
-      {onRemove && (
-        <Button variant="ghost" size="icon" className="h-6 w-6 shrink-0" onClick={onRemove}>
-          <X className="h-3 w-3" />
-        </Button>
-      )}
+      <div className="flex items-center gap-2 flex-wrap">
+        <CurrencyInput
+          value={item.amount}
+          onChange={v => onUpdate({ amount: v })}
+          className="w-24"
+        />
+        {item.isMonthly && (
+          <span className="text-xs text-muted-foreground whitespace-nowrap">
+            × {durataOperazione}m = {formatEuro(item.amount * durataOperazione)}
+          </span>
+        )}
+        <button
+          className={`text-[10px] px-2 py-0.5 rounded-full font-medium cursor-pointer ${statusColors[item.status]}`}
+          onClick={() => onUpdate({ status: nextStatus[item.status] })}
+          title="Clicca per cambiare stato"
+        >
+          {statusLabels[item.status]}
+        </button>
+        {onRemove && (
+          <Button variant="ghost" size="icon" className="h-6 w-6 shrink-0" onClick={onRemove}>
+            <X className="h-3 w-3" />
+          </Button>
+        )}
+      </div>
     </div>
   );
 }
