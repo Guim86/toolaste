@@ -19,6 +19,10 @@ interface Props {
   onDelete: (id: string) => void;
   onExport: () => void;
   onImport: (data: ProjectData) => void;
+  /** Render only the mobile dropdown menu button */
+  mobileMode?: boolean;
+  /** Render only the select (full-width) */
+  selectOnly?: boolean;
 }
 
 export function ProjectManager({
@@ -30,6 +34,8 @@ export function ProjectManager({
   onDelete,
   onExport,
   onImport,
+  mobileMode,
+  selectOnly,
 }: Props) {
   const fileRef = useRef<HTMLInputElement>(null);
 
@@ -49,46 +55,10 @@ export function ProjectManager({
     e.target.value = '';
   };
 
-  return (
-    <div className="flex items-center gap-2">
-      <Select value={activeId} onValueChange={onSelect}>
-        <SelectTrigger className="w-36 sm:w-52 text-sm h-8">
-          <SelectValue placeholder="Seleziona progetto" />
-        </SelectTrigger>
-        <SelectContent>
-          {projects.map(p => (
-            <SelectItem key={p.id} value={p.id}>
-              {p.nome || 'Senza nome'} — {p.comune || '?'}
-            </SelectItem>
-          ))}
-        </SelectContent>
-      </Select>
-
-      {/* Desktop buttons */}
-      <div className="hidden sm:flex items-center gap-2">
-        <Button variant="outline" size="icon" className="h-8 w-8" onClick={onNew} title="Nuovo">
-          <Plus className="h-3.5 w-3.5" />
-        </Button>
-        <Button variant="outline" size="icon" className="h-8 w-8" onClick={() => onDuplicate(activeId)} title="Duplica">
-          <Copy className="h-3.5 w-3.5" />
-        </Button>
-        <Button variant="outline" size="icon" className="h-8 w-8" onClick={onExport} title="Esporta JSON">
-          <Download className="h-3.5 w-3.5" />
-        </Button>
-        <Button variant="outline" size="icon" className="h-8 w-8" onClick={() => fileRef.current?.click()} title="Importa JSON">
-          <Upload className="h-3.5 w-3.5" />
-        </Button>
-        {projects.length > 1 && (
-          <Button variant="outline" size="icon" className="h-8 w-8 text-danger" onClick={() => {
-            if (confirm('Eliminare questo progetto?')) onDelete(activeId);
-          }} title="Elimina">
-            <Trash2 className="h-3.5 w-3.5" />
-          </Button>
-        )}
-      </div>
-
-      {/* Mobile dropdown */}
-      <div className="sm:hidden">
+  // Mobile: only render dropdown menu button
+  if (mobileMode) {
+    return (
+      <>
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
             <Button variant="outline" size="icon" className="h-8 w-8">
@@ -120,6 +90,65 @@ export function ProjectManager({
             )}
           </DropdownMenuContent>
         </DropdownMenu>
+        <input ref={fileRef} type="file" accept=".json" className="hidden" onChange={handleImport} />
+      </>
+    );
+  }
+
+  // Mobile: only render full-width select
+  if (selectOnly) {
+    return (
+      <Select value={activeId} onValueChange={onSelect}>
+        <SelectTrigger className="w-full text-sm h-8">
+          <SelectValue placeholder="Seleziona progetto" />
+        </SelectTrigger>
+        <SelectContent>
+          {projects.map(p => (
+            <SelectItem key={p.id} value={p.id}>
+              {p.nome || 'Senza nome'} — {p.comune || '?'}
+            </SelectItem>
+          ))}
+        </SelectContent>
+      </Select>
+    );
+  }
+
+  // Desktop: full layout
+  return (
+    <div className="flex items-center gap-2">
+      <Select value={activeId} onValueChange={onSelect}>
+        <SelectTrigger className="w-52 text-sm h-8">
+          <SelectValue placeholder="Seleziona progetto" />
+        </SelectTrigger>
+        <SelectContent>
+          {projects.map(p => (
+            <SelectItem key={p.id} value={p.id}>
+              {p.nome || 'Senza nome'} — {p.comune || '?'}
+            </SelectItem>
+          ))}
+        </SelectContent>
+      </Select>
+
+      <div className="flex items-center gap-2">
+        <Button variant="outline" size="icon" className="h-8 w-8" onClick={onNew} title="Nuovo">
+          <Plus className="h-3.5 w-3.5" />
+        </Button>
+        <Button variant="outline" size="icon" className="h-8 w-8" onClick={() => onDuplicate(activeId)} title="Duplica">
+          <Copy className="h-3.5 w-3.5" />
+        </Button>
+        <Button variant="outline" size="icon" className="h-8 w-8" onClick={onExport} title="Esporta JSON">
+          <Download className="h-3.5 w-3.5" />
+        </Button>
+        <Button variant="outline" size="icon" className="h-8 w-8" onClick={() => fileRef.current?.click()} title="Importa JSON">
+          <Upload className="h-3.5 w-3.5" />
+        </Button>
+        {projects.length > 1 && (
+          <Button variant="outline" size="icon" className="h-8 w-8 text-destructive" onClick={() => {
+            if (confirm('Eliminare questo progetto?')) onDelete(activeId);
+          }} title="Elimina">
+            <Trash2 className="h-3.5 w-3.5" />
+          </Button>
+        )}
       </div>
 
       <input ref={fileRef} type="file" accept=".json" className="hidden" onChange={handleImport} />

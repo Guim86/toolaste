@@ -44,7 +44,7 @@ function AgencyRow({
   return (
     <div className="flex flex-col sm:flex-row sm:items-center gap-1 sm:gap-2">
       <div className="flex items-center gap-2 min-w-0">
-        <span className="text-sm truncate py-1">Agenzia</span>
+        <span className="text-sm truncate py-1">Provvigione agenzia</span>
         <div className="flex items-center gap-1.5">
           <span className="text-[10px] text-muted-foreground">Fisso</span>
           <Switch
@@ -54,7 +54,7 @@ function AgencyRow({
             }
             className="scale-75"
           />
-          <span className="text-[10px] text-muted-foreground">%</span>
+          <span className="text-[10px] text-muted-foreground">A percentuale</span>
         </div>
       </div>
       <div className="flex items-center gap-2 flex-wrap">
