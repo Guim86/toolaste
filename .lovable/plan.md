@@ -1,34 +1,30 @@
 
 
-# Fix Spese mobile overflow
+# Modifiche richieste
 
-## Problema
-Le righe spesa usano `flex` orizzontale con input a larghezza fissa (`w-28`) + label + badge stato + eventuale info mensile, tutto su una riga. A 390px la riga sfora.
+## 1. Etichette Agenzia (`src/components/sections/ExpensesSection.tsx`)
 
-## Soluzione
+- **Riga 47**: "Agenzia" → "Provvigione agenzia"
+- **Riga 57**: "%" → "A percentuale"
 
-Rompere ogni riga spesa su due righe sotto `sm`:
+## 2. Header mobile — nome progetto su riga separata (`src/pages/Index.tsx` + `src/components/ProjectManager.tsx`)
 
-### ExpenseRow (righe 96-132)
-- **Riga 1**: Label (full width)  
-- **Riga 2**: Input importo + info mensile + badge stato + bottone rimuovi
+Attualmente su mobile l'header ha logo + ProjectManager sulla stessa riga, e il Select del progetto è troncato a `w-36`.
 
-Usare `flex-col sm:flex-row` sul container e `flex-wrap` sulla seconda riga.
+Modifica: su mobile (`sm:hidden`), ristrutturare l'header in due righe:
+- **Riga 1**: Logo "TOO-LA(S)TE" a sinistra + menu "..." a destra
+- **Riga 2**: Select progetto full-width sotto
 
-### AgencyRow (righe 44-81)
-- **Riga 1**: "Agenzia" + switch Fisso/% 
-- **Riga 2**: Input importo + badge stato
+Approccio: nel `ProjectManager`, separare il Select dal dropdown mobile. Su `sm:hidden`, il Select va su una riga propria (`w-full`) e il bottone "..." resta nell'header principale. Questo richiede di spostare il layout nell'`Index.tsx`:
 
-Stessa logica: `flex-col sm:flex-row`.
-
-### CategorySection header (riga 179-195)
-- Quando ci sono scenarioTotals, i totali per scenario possono anch'essi sforare. Aggiungere `flex-col sm:flex-row` e allineare i totali a destra su mobile con `text-right`.
-
-### Input width
-- Ridurre `w-28` a `w-24` su mobile per gli input importo nelle righe.
+- Header mobile diventa `flex-col`: riga 1 con logo + dropdown menu, riga 2 con select progetto full-width
+- Header desktop resta invariato
 
 ## File coinvolti
+
 | File | Modifica |
 |------|----------|
-| `src/components/sections/ExpensesSection.tsx` | Layout responsive per ExpenseRow, AgencyRow e header categoria |
+| `src/components/sections/ExpensesSection.tsx` | Rinomina label |
+| `src/pages/Index.tsx` | Header mobile a due righe |
+| `src/components/ProjectManager.tsx` | Select full-width su mobile |
 
