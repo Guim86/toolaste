@@ -42,41 +42,45 @@ function AgencyRow({
   const isPercentage = item.isPercentage ?? false;
 
   return (
-    <div className="flex items-center gap-2">
-      <span className="text-sm flex-1 min-w-0 truncate py-1">Agenzia</span>
-      <div className="flex items-center gap-1.5">
-        <span className="text-[10px] text-muted-foreground">Fisso</span>
-        <Switch
-          checked={isPercentage}
-          onCheckedChange={(checked) =>
-            onUpdate({ isPercentage: checked })
-          }
-          className="scale-75"
-        />
-        <span className="text-[10px] text-muted-foreground">%</span>
+    <div className="flex flex-col sm:flex-row sm:items-center gap-1 sm:gap-2">
+      <div className="flex items-center gap-2 min-w-0">
+        <span className="text-sm truncate py-1">Agenzia</span>
+        <div className="flex items-center gap-1.5">
+          <span className="text-[10px] text-muted-foreground">Fisso</span>
+          <Switch
+            checked={isPercentage}
+            onCheckedChange={(checked) =>
+              onUpdate({ isPercentage: checked })
+            }
+            className="scale-75"
+          />
+          <span className="text-[10px] text-muted-foreground">%</span>
+        </div>
       </div>
-      {isPercentage ? (
-        <CurrencyInput
-          value={item.percentage ?? 0}
-          onChange={v => onUpdate({ percentage: v })}
-          suffix="%"
-          decimals={2}
-          className="w-20"
-        />
-      ) : (
-        <CurrencyInput
-          value={item.amount}
-          onChange={v => onUpdate({ amount: v })}
-          className="w-28"
-        />
-      )}
-      <button
-        className={`text-[10px] px-2 py-0.5 rounded-full font-medium cursor-pointer ${statusColors[item.status]}`}
-        onClick={() => onUpdate({ status: nextStatus[item.status] })}
-        title="Clicca per cambiare stato"
-      >
-        {statusLabels[item.status]}
-      </button>
+      <div className="flex items-center gap-2 flex-wrap">
+        {isPercentage ? (
+          <CurrencyInput
+            value={item.percentage ?? 0}
+            onChange={v => onUpdate({ percentage: v })}
+            suffix="%"
+            decimals={2}
+            className="w-20"
+          />
+        ) : (
+          <CurrencyInput
+            value={item.amount}
+            onChange={v => onUpdate({ amount: v })}
+            className="w-24"
+          />
+        )}
+        <button
+          className={`text-[10px] px-2 py-0.5 rounded-full font-medium cursor-pointer ${statusColors[item.status]}`}
+          onClick={() => onUpdate({ status: nextStatus[item.status] })}
+          title="Clicca per cambiare stato"
+        >
+          {statusLabels[item.status]}
+        </button>
+      </div>
     </div>
   );
 }
@@ -93,8 +97,8 @@ function ExpenseRow({
   onRemove?: () => void;
 }) {
   return (
-    <div className="flex items-center gap-2">
-      <div className="flex-1 min-w-0">
+    <div className="flex flex-col sm:flex-row sm:items-center gap-1 sm:gap-2">
+      <div className="min-w-0 sm:flex-1">
         {item.isCustom ? (
           <Input
             value={item.label}
@@ -106,28 +110,30 @@ function ExpenseRow({
           <span className="text-sm truncate block py-1">{item.label}</span>
         )}
       </div>
-      <CurrencyInput
-        value={item.amount}
-        onChange={v => onUpdate({ amount: v })}
-        className="w-28"
-      />
-      {item.isMonthly && (
-        <span className="text-xs text-muted-foreground whitespace-nowrap">
-          × {durataOperazione}m = {formatEuro(item.amount * durataOperazione)}
-        </span>
-      )}
-      <button
-        className={`text-[10px] px-2 py-0.5 rounded-full font-medium cursor-pointer ${statusColors[item.status]}`}
-        onClick={() => onUpdate({ status: nextStatus[item.status] })}
-        title="Clicca per cambiare stato"
-      >
-        {statusLabels[item.status]}
-      </button>
-      {onRemove && (
-        <Button variant="ghost" size="icon" className="h-6 w-6 shrink-0" onClick={onRemove}>
-          <X className="h-3 w-3" />
-        </Button>
-      )}
+      <div className="flex items-center gap-2 flex-wrap">
+        <CurrencyInput
+          value={item.amount}
+          onChange={v => onUpdate({ amount: v })}
+          className="w-24"
+        />
+        {item.isMonthly && (
+          <span className="text-xs text-muted-foreground whitespace-nowrap">
+            × {durataOperazione}m = {formatEuro(item.amount * durataOperazione)}
+          </span>
+        )}
+        <button
+          className={`text-[10px] px-2 py-0.5 rounded-full font-medium cursor-pointer ${statusColors[item.status]}`}
+          onClick={() => onUpdate({ status: nextStatus[item.status] })}
+          title="Clicca per cambiare stato"
+        >
+          {statusLabels[item.status]}
+        </button>
+        {onRemove && (
+          <Button variant="ghost" size="icon" className="h-6 w-6 shrink-0" onClick={onRemove}>
+            <X className="h-3 w-3" />
+          </Button>
+        )}
+      </div>
     </div>
   );
 }
@@ -176,11 +182,14 @@ function CategorySection({
 
   return (
     <Collapsible open={open} onOpenChange={setOpen}>
-      <CollapsibleTrigger className="flex items-center justify-between w-full py-2 hover:bg-muted/50 rounded px-2 -mx-2">
-        <span className="text-sm font-medium">{category.label}</span>
+      <CollapsibleTrigger className="flex flex-col sm:flex-row sm:items-center sm:justify-between w-full py-2 hover:bg-muted/50 rounded px-2 -mx-2 gap-0.5">
+        <div className="flex items-center justify-between w-full sm:w-auto">
+          <span className="text-sm font-medium">{category.label}</span>
+          <ChevronDown className={`h-4 w-4 transition-transform sm:hidden ${open ? 'rotate-180' : ''}`} />
+        </div>
         <div className="flex items-center gap-2">
           {showScenarios ? (
-            <div className="flex items-center gap-1.5 flex-wrap justify-end">
+            <div className="flex items-center gap-1.5 flex-wrap">
               {scenarioTotals!.map((s, i) => (
                 <span key={i} className="font-mono text-[11px] text-muted-foreground">
                   {s.name}: {formatEuro(s.total)}
@@ -191,7 +200,7 @@ function CategorySection({
           ) : (
             <span className="font-mono text-sm text-muted-foreground">{formatEuro(fixedTotal)}</span>
           )}
-          <ChevronDown className={`h-4 w-4 transition-transform ${open ? 'rotate-180' : ''}`} />
+          <ChevronDown className={`h-4 w-4 transition-transform hidden sm:block ${open ? 'rotate-180' : ''}`} />
         </div>
       </CollapsibleTrigger>
       <CollapsibleContent className="space-y-2 pl-2 pt-1">
