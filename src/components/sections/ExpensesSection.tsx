@@ -273,7 +273,10 @@ export function ExpensesSection({ project, onUpdate }: Props) {
       <CardHeader className="pb-3">
         <CardTitle className="text-base flex items-center gap-2">
           <Receipt className="h-4 w-4 text-primary" />
-          Spese
+          <span>
+            <span className="font-bold">Spese</span>
+            <span className="font-normal text-muted-foreground"> (click section to collapse)</span>
+          </span>
         </CardTitle>
       </CardHeader>
       <CardContent className="space-y-1 divide-y">
