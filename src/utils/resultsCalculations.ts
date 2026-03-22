@@ -142,7 +142,7 @@ export function buildScenariosFromProject(project: ProjectData): ScenarioRange[]
 
   const colors = ['hsl(217, 80%, 56%)', 'hsl(38, 92%, 50%)', 'hsl(160, 84%, 39%)'];
 
-  const purchaseMin = project.manualRangeMin ?? prezzoAggiudicazione * 0.85;
+  const purchaseMin = project.offertaMinima > 0 ? project.offertaMinima : (project.manualRangeMin ?? prezzoAggiudicazione * 0.85);
   const purchaseMax = project.manualRangeMax ?? prezzoAggiudicazione * 1.15;
 
   return saleScenarios.map((s, i) => {
