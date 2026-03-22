@@ -23,6 +23,14 @@ function calcFixedExpenses(project: ProjectData): number {
   return total;
 }
 
+function getAgencyInfo(project: ProjectData): { label: string; pct: number } {
+  const vendita = project.expenses.find(c => c.id === 'vendita');
+  if (!vendita) return { label: 'Agenzia', pct: 0 };
+  const agenzia = vendita.items.find(i => i.id === 'agenzia');
+  if (!agenzia) return { label: 'Agenzia', pct: 0 };
+  return { label: agenzia.label, pct: agenzia.percentage ?? 0 };
+}
+
 function getSalePercentage(project: ProjectData): number {
   const vendita = project.expenses.find(c => c.id === 'vendita');
   if (!vendita) return 0;
@@ -56,12 +64,10 @@ function calcROI(resale: number, totalInvested: number, salePct: number): number
 function calcMaxPurchase(project: ProjectData, resale: number, roiTarget: number, fixedExp: number, salePct: number): number {
   const netResale = resale * (1 - salePct / 100);
   const required = netResale / (1 + roiTarget / 100);
-  // required = purchase + tax + fixedExp
   if (project.taxBase === 'catastale' && project.renditaCatastale > 0) {
     const taxFixed = project.renditaCatastale * 126 * project.taxRate;
     return Math.max(0, required - fixedExp - taxFixed);
   }
-  // required = P + P*taxRate + fixedExp = P*(1+taxRate) + fixedExp
   return Math.max(0, (required - fixedExp) / (1 + project.taxRate));
 }
 
@@ -114,7 +120,6 @@ function ThresholdChart({ project, purchasePrice, resalePrice, roiTarget, fixedE
     const xMin = purchaseRange[0];
     const xMax = purchaseRange[1];
 
-    // Compute Y range from min resale at extremes
     const yAtMin = calcMinResale(calcTotalInvested(project, xMin, fixedExp), roiTarget, salePct);
     const yAtMax = calcMinResale(calcTotalInvested(project, xMax, fixedExp), roiTarget, salePct);
     const allResales = [yAtMin, yAtMax, resalePrice, ...scenarios.map(s => s.resale)];
@@ -126,7 +131,6 @@ function ThresholdChart({ project, purchasePrice, resalePrice, roiTarget, fixedE
     const fromX = (px: number) => xMin + ((px - pad.left) / cw) * (xMax - xMin);
     const fromY = (py: number) => yDataMin + ((ch - (py - pad.top)) / ch) * (yDataMax - yDataMin);
 
-    // Clear
     ctx.clearRect(0, 0, W, H);
 
     // Threshold line points
@@ -139,7 +143,6 @@ function ThresholdChart({ project, purchasePrice, resalePrice, roiTarget, fixedE
       thresholdPoints.push({ x: toX(p), y: toY(minR) });
     }
 
-    // Fill areas
     // Green above
     ctx.beginPath();
     ctx.moveTo(thresholdPoints[0].x, pad.top);
@@ -174,13 +177,11 @@ function ThresholdChart({ project, purchasePrice, resalePrice, roiTarget, fixedE
     ctx.setLineDash([6, 4]);
     ctx.strokeStyle = 'hsl(215, 15%, 60%)';
     ctx.lineWidth = 1;
-    // Vertical
     ctx.beginPath(); ctx.moveTo(px, pad.top); ctx.lineTo(px, pad.top + ch); ctx.stroke();
-    // Horizontal
     ctx.beginPath(); ctx.moveTo(pad.left, py); ctx.lineTo(pad.left + cw, py); ctx.stroke();
     ctx.setLineDash([]);
 
-    // Scenario markers (amber)
+    // Scenario markers
     for (const sc of scenarios) {
       const sx = toX(purchasePrice);
       const sy = toY(sc.resale);
@@ -192,7 +193,6 @@ function ThresholdChart({ project, purchasePrice, resalePrice, roiTarget, fixedE
         ctx.strokeStyle = 'hsl(38, 92%, 35%)';
         ctx.lineWidth = 1.5;
         ctx.stroke();
-        // Label
         ctx.fillStyle = 'hsl(38, 92%, 35%)';
         ctx.font = '11px IBM Plex Sans, sans-serif';
         ctx.textAlign = 'left';
@@ -226,7 +226,6 @@ function ThresholdChart({ project, purchasePrice, resalePrice, roiTarget, fixedE
     ctx.font = '11px IBM Plex Sans, sans-serif';
     ctx.textAlign = 'center';
 
-    // X ticks
     const xTicks = 5;
     for (let i = 0; i <= xTicks; i++) {
       const v = xMin + (i / xTicks) * (xMax - xMin);
@@ -235,7 +234,6 @@ function ThresholdChart({ project, purchasePrice, resalePrice, roiTarget, fixedE
       ctx.beginPath(); ctx.moveTo(x, pad.top + ch); ctx.lineTo(x, pad.top + ch + 5); ctx.strokeStyle = 'hsl(214, 25%, 80%)'; ctx.stroke();
     }
 
-    // Y ticks
     ctx.textAlign = 'right';
     const yTicks = 5;
     for (let i = 0; i <= yTicks; i++) {
@@ -245,7 +243,6 @@ function ThresholdChart({ project, purchasePrice, resalePrice, roiTarget, fixedE
       ctx.beginPath(); ctx.moveTo(pad.left - 4, y); ctx.lineTo(pad.left, y); ctx.strokeStyle = 'hsl(214, 25%, 80%)'; ctx.stroke();
     }
 
-    // Axis titles
     ctx.fillStyle = 'hsl(215, 15%, 47%)';
     ctx.font = '12px IBM Plex Sans, sans-serif';
     ctx.textAlign = 'center';
@@ -257,7 +254,6 @@ function ThresholdChart({ project, purchasePrice, resalePrice, roiTarget, fixedE
     ctx.fillText('Prezzo di rivendita (€)', 0, 0);
     ctx.restore();
 
-    // Store mapping for tooltip
     (canvas as any)._chartMeta = { pad, cw, ch, xMin, xMax, yDataMin, yDataMax, fromX, fromY };
   }, [project, purchasePrice, resalePrice, roiTarget, fixedExp, salePct, purchaseRange, scenarios]);
 
@@ -347,9 +343,14 @@ function SogliaContent({ project }: { project: ProjectData }) {
   const mediumScenario = project.saleScenarios.find(s => s.id === 'medio');
   const baseResale = mediumScenario && mediumScenario.euroPerMq > 0 ? mediumScenario.euroPerMq * project.mq : basePrice * 1.3;
 
+  const projectFixedExp = useMemo(() => calcFixedExpenses(project), [project.expenses, project.durataOperazione]);
+  const salePct = useMemo(() => getSalePercentage(project), [project.expenses]);
+  const agencyInfo = useMemo(() => getAgencyInfo(project), [project.expenses]);
+
   const [purchasePrice, setPurchasePrice] = useState(basePrice);
   const [resalePrice, setResalePrice] = useState(baseResale);
   const [roiTarget, setRoiTarget] = useState(project.minROI);
+  const [fixedExp, setFixedExp] = useState(projectFixedExp);
 
   // Reset sliders when project defaults change
   useEffect(() => {
@@ -367,8 +368,9 @@ function SogliaContent({ project }: { project: ProjectData }) {
     setResalePrice(br);
   }, [project.saleScenarios, project.mq, project.prezzoAggiudicazione, project.prezzoBase]);
 
-  const fixedExp = useMemo(() => calcFixedExpenses(project), [project.expenses, project.durataOperazione]);
-  const salePct = useMemo(() => getSalePercentage(project), [project.expenses]);
+  useEffect(() => {
+    setFixedExp(projectFixedExp);
+  }, [projectFixedExp]);
 
   const totalInvested = calcTotalInvested(project, purchasePrice, fixedExp);
   const minResale = calcMinResale(totalInvested, roiTarget, salePct);
@@ -377,119 +379,147 @@ function SogliaContent({ project }: { project: ProjectData }) {
   const maxPurchase = calcMaxPurchase(project, resalePrice, roiTarget, fixedExp, salePct);
   const isValid = resalePrice >= minResale;
 
-  const purchaseMin = Math.max(1, Math.round(basePrice * 0.5));
+  // Purchase range: min = offertaMinima (can't buy lower), max = 160% of base
+  const purchaseMin = project.offertaMinima > 0 ? project.offertaMinima : Math.max(1, Math.round(basePrice * 0.5));
   const purchaseMax = Math.round(basePrice * 1.6);
   const resaleMin = Math.max(1, Math.round(baseResale * 0.6));
   const resaleMax = Math.round(baseResale * 1.5);
+  const expMin = Math.max(0, Math.round(projectFixedExp * 0.3));
+  const expMax = Math.round(projectFixedExp * 2.5);
 
   return (
     <div className="min-h-screen bg-background">
-      <div className="max-w-4xl mx-auto px-4 py-8 space-y-8">
+      <div className="max-w-5xl mx-auto px-4 py-6 space-y-4">
         {/* Header */}
         <div>
-          <h1 className="text-2xl font-bold text-foreground">{project.nome || 'Progetto senza nome'}</h1>
-          {project.comune && <p className="text-muted-foreground">{project.comune}</p>}
-          <p className="text-xs text-muted-foreground mt-1">Analisi soglia di rivendita</p>
+          <h1 className="text-xl font-bold text-foreground">{project.nome || 'Progetto senza nome'}</h1>
+          {project.comune && <p className="text-sm text-muted-foreground">{project.comune}</p>}
         </div>
 
-        {/* KPI Cards */}
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+        {/* KPI Cards — compact row */}
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
           <Card>
-            <CardContent className="pt-5 pb-4 space-y-1">
-              <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide">Max acquisto per ROI {roiTarget}%</p>
-              <p className={`text-xl font-mono font-bold ${purchasePrice <= maxPurchase ? 'text-success' : 'text-destructive'}`}>
+            <CardContent className="py-3 px-4 space-y-0.5">
+              <p className="text-[11px] font-medium text-muted-foreground uppercase tracking-wide">Max acquisto per ROI {roiTarget}%</p>
+              <p className={`text-lg font-mono font-bold ${purchasePrice <= maxPurchase ? 'text-success' : 'text-destructive'}`}>
                 {formatEuro(maxPurchase)}
               </p>
-              <p className="text-xs text-muted-foreground">
+              <p className="text-[11px] text-muted-foreground">
                 {purchasePrice <= maxPurchase ? 'Sotto il massimo ✓' : 'Supera il massimo ✗'}
               </p>
             </CardContent>
           </Card>
 
           <Card>
-            <CardContent className="pt-5 pb-4 space-y-1">
-              <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide">Margine dalla soglia</p>
-              <p className={`text-xl font-mono font-bold ${margin > minResale * 0.1 ? 'text-success' : margin >= 0 ? 'text-warning' : 'text-destructive'}`}>
+            <CardContent className="py-3 px-4 space-y-0.5">
+              <p className="text-[11px] font-medium text-muted-foreground uppercase tracking-wide">Margine dalla soglia</p>
+              <p className={`text-lg font-mono font-bold ${margin > minResale * 0.1 ? 'text-success' : margin >= 0 ? 'text-warning' : 'text-destructive'}`}>
                 {formatEuro(margin)}
               </p>
-              <p className="text-xs text-muted-foreground">
+              <p className="text-[11px] text-muted-foreground">
                 Rivendita min.: {formatEuro(minResale)}
               </p>
             </CardContent>
           </Card>
 
           <Card>
-            <CardContent className="pt-5 pb-4 space-y-1">
-              <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide">Stato operazione</p>
+            <CardContent className="py-3 px-4 space-y-0.5">
+              <p className="text-[11px] font-medium text-muted-foreground uppercase tracking-wide">Stato operazione</p>
               <div className="flex items-center gap-2">
                 <Badge variant={isValid ? 'default' : 'destructive'} className={isValid ? 'bg-success text-success-foreground' : ''}>
                   {isValid ? 'Valida' : 'Non valida'}
                 </Badge>
                 <span className="font-mono text-lg font-bold text-foreground">{formatPercent(currentROI)}</span>
               </div>
-              <p className="text-xs text-muted-foreground">Target: {formatPercent(roiTarget)}</p>
+              <p className="text-[11px] text-muted-foreground">Target: {formatPercent(roiTarget)}</p>
             </CardContent>
           </Card>
         </div>
 
-        {/* Sliders */}
+        {/* Sliders — compact */}
         <Card>
-          <CardContent className="pt-6 space-y-6">
-            <div className="space-y-2">
-              <div className="flex justify-between text-sm">
-                <span className="text-muted-foreground">Prezzo di acquisto</span>
-                <span className="font-mono font-semibold text-foreground">{formatEuro(purchasePrice)}</span>
+          <CardContent className="py-4 px-4 space-y-3">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-3">
+              <div className="space-y-1.5">
+                <div className="flex justify-between text-sm">
+                  <span className="text-muted-foreground">Prezzo di acquisto</span>
+                  <span className="font-mono font-semibold text-foreground">{formatEuro(purchasePrice)}</span>
+                </div>
+                <Slider
+                  value={[purchasePrice]}
+                  onValueChange={([v]) => setPurchasePrice(v)}
+                  min={purchaseMin}
+                  max={purchaseMax}
+                  step={Math.max(100, Math.round((purchaseMax - purchaseMin) / 500))}
+                />
+                {project.offertaMinima > 0 && (
+                  <p className="text-[10px] text-muted-foreground">Min: offerta minima {formatEuro(project.offertaMinima)}</p>
+                )}
               </div>
-              <Slider
-                value={[purchasePrice]}
-                onValueChange={([v]) => setPurchasePrice(v)}
-                min={purchaseMin}
-                max={purchaseMax}
-                step={Math.max(100, Math.round((purchaseMax - purchaseMin) / 500))}
-              />
+
+              <div className="space-y-1.5">
+                <div className="flex justify-between text-sm">
+                  <span className="text-muted-foreground">Prezzo di rivendita</span>
+                  <span className="font-mono font-semibold text-foreground">{formatEuro(resalePrice)}</span>
+                </div>
+                <Slider
+                  value={[resalePrice]}
+                  onValueChange={([v]) => setResalePrice(v)}
+                  min={resaleMin}
+                  max={resaleMax}
+                  step={Math.max(100, Math.round((resaleMax - resaleMin) / 500))}
+                />
+              </div>
+
+              <div className="space-y-1.5">
+                <div className="flex justify-between text-sm">
+                  <span className="text-muted-foreground">Spese fisse totali</span>
+                  <span className="font-mono font-semibold text-foreground">
+                    {formatEuro(fixedExp)}
+                    {fixedExp !== projectFixedExp && (
+                      <span className="text-muted-foreground font-normal text-xs ml-1">(progetto: {formatEuro(projectFixedExp)})</span>
+                    )}
+                  </span>
+                </div>
+                <Slider
+                  value={[fixedExp]}
+                  onValueChange={([v]) => setFixedExp(v)}
+                  min={expMin}
+                  max={expMax}
+                  step={Math.max(100, Math.round((expMax - expMin) / 500))}
+                />
+                <p className="text-[10px] text-muted-foreground">
+                  Valore progetto: {formatEuro(projectFixedExp)} — {agencyInfo.label} esclusa ({agencyInfo.pct}% sul prezzo di vendita)
+                </p>
+              </div>
+
+              <div className="space-y-1.5">
+                <div className="flex justify-between text-sm">
+                  <span className="text-muted-foreground">ROI target</span>
+                  <span className="font-mono font-semibold text-foreground">{formatPercent(roiTarget)}</span>
+                </div>
+                <Slider
+                  value={[roiTarget]}
+                  onValueChange={([v]) => setRoiTarget(v)}
+                  min={5}
+                  max={60}
+                  step={1}
+                />
+              </div>
             </div>
 
-            <div className="space-y-2">
-              <div className="flex justify-between text-sm">
-                <span className="text-muted-foreground">Prezzo di rivendita</span>
-                <span className="font-mono font-semibold text-foreground">{formatEuro(resalePrice)}</span>
-              </div>
-              <Slider
-                value={[resalePrice]}
-                onValueChange={([v]) => setResalePrice(v)}
-                min={resaleMin}
-                max={resaleMax}
-                step={Math.max(100, Math.round((resaleMax - resaleMin) / 500))}
-              />
-            </div>
-
-            <div className="space-y-2">
-              <div className="flex justify-between text-sm">
-                <span className="text-muted-foreground">ROI target</span>
-                <span className="font-mono font-semibold text-foreground">{formatPercent(roiTarget)}</span>
-              </div>
-              <Slider
-                value={[roiTarget]}
-                onValueChange={([v]) => setRoiTarget(v)}
-                min={5}
-                max={60}
-                step={1}
-              />
-            </div>
-
-            <div className="text-xs text-muted-foreground space-y-0.5 pt-2 border-t border-border">
-              <p>Durata operazione: <span className="font-medium text-foreground">{project.durataOperazione} mesi</span></p>
-              <p>Spese fisse totali: <span className="font-medium text-foreground">{formatEuro(fixedExp)}</span></p>
-              <p>Aliquota tasse acquisto: <span className="font-medium text-foreground">{formatPercent(project.taxRate * 100)}</span></p>
-              <p className="text-muted-foreground/70 italic mt-1">Questi valori si modificano nelle rispettive sezioni del progetto.</p>
+            <div className="text-[11px] text-muted-foreground flex flex-wrap gap-x-4 gap-y-0.5 pt-2 border-t border-border">
+              <span>Durata: <span className="font-medium text-foreground">{project.durataOperazione} mesi</span></span>
+              <span>Aliquota tasse: <span className="font-medium text-foreground">{formatPercent(project.taxRate * 100)}</span></span>
+              <span className="text-muted-foreground/70 italic">Modificabili nelle rispettive sezioni del progetto.</span>
             </div>
           </CardContent>
         </Card>
 
         {/* Chart */}
         <Card>
-          <CardContent className="pt-6 pb-4">
-            <h2 className="text-sm font-medium text-muted-foreground mb-4">Soglia rivendita minima per ROI {formatPercent(roiTarget)}</h2>
+          <CardContent className="pt-4 pb-3 px-4">
+            <h2 className="text-sm font-medium text-muted-foreground mb-3">Soglia rivendita minima per ROI {formatPercent(roiTarget)}</h2>
             <ThresholdChart
               project={project}
               purchasePrice={purchasePrice}
