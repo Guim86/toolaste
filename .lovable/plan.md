@@ -1,24 +1,67 @@
 
 
-# Usare l'offerta minima come prezzo minimo di acquisto
+# Pagina /soglia — Analisi Soglia di Rivendita
 
-## Problema attuale
-In `buildScenariosFromProject` (riga 145), il `purchaseMin` usa `manualRangeMin` oppure `prezzoAggiudicazione * 0.85`. Questo non ha senso perche l'utente non potra mai acquistare sotto l'offerta minima.
+## Obiettivo
+Pagina segreta (`/soglia`) che risponde alla domanda: "dato il prezzo d'asta, qual è il prezzo minimo di rivendita per raggiungere il ROI target?"
 
-## Modifica
+## File da creare/modificare
 
-**File: `src/utils/resultsCalculations.ts`** — riga 145
+| File | Azione |
+|------|--------|
+| `src/pages/Soglia.tsx` | Nuova pagina completa |
+| `src/App.tsx` | Aggiungere route `/soglia` (nessun link nell'UI) |
 
-Cambiare:
-```ts
-const purchaseMin = project.manualRangeMin ?? prezzoAggiudicazione * 0.85;
-```
-In:
-```ts
-const purchaseMin = project.offertaMinima > 0 ? project.offertaMinima : (project.manualRangeMin ?? prezzoAggiudicazione * 0.85);
-```
+## Struttura della pagina
 
-Se `offertaMinima` e valorizzata (> 0), viene usata come floor del range acquisto per tutti gli scenari e di conseguenza come estremo sinistro dell'asse X del grafico. Il fallback resta il comportamento attuale.
+**Intestazione**: nome progetto + comune dal progetto attivo.
 
-Nessun altro file da modificare: il `ResultsContourChart` calcola gia gli assi dal min/max degli scenari.
+**3 KPI Cards**:
+1. Prezzo massimo acquisto per ROI target (verde/rosso)
+2. Margine in € tra rivendita attuale e rivendita minima (verde/ambra/rosso)
+3. Stato operazione — "Valida"/"Non valida" con ROI% vs target
+
+**3 Slider**:
+1. Prezzo acquisto — default `prezzoAggiudicazione || prezzoBase`, range 50%-160%
+2. Prezzo rivendita — default scenario medio `euroPerMq × mq`, range 60%-150%
+3. ROI target % — default `minROI`, range 5%-60%
+
+**Testo fisso sotto slider**: durata, spese fisse totali, aliquota tasse — con nota "modificabili nelle rispettive sezioni"
+
+**Grafico linea** (canvas o SVG semplice):
+- Asse X = prezzo acquisto, Asse Y = prezzo rivendita
+- Linea verde = soglia rivendita minima per ROI target
+- Zona sopra = sfondo verde tenue, zona sotto = sfondo rosso tenue
+- Punto colorato = posizione corrente (verde sopra, rosso sotto)
+- Marker ambra per scenari con euroPerMq valorizzato
+- Linee tratteggiate orizzontale e verticale sul punto corrente
+- Tooltip hover con tutti i dati
+
+## Logica di calcolo
+
+Riuso funzioni da `src/utils/calculations.ts` per coerenza:
+- Spese fisse: somma expenses escludendo vendita, monthly × durata
+- Tasse: `taxBase === 'catastale'` → `renditaCatastale × 126 × taxRate`, altrimenti `acquisto × taxRate`
+- % spesa vendita: da items con `isPercentage` nella categoria vendita
+- Totale investito = acquisto + tasse + spese fisse
+- Rivendita minima = `totaleInvestito × (1 + roiTarget/100) / (1 - percVendita/100)`
+- ROI = `(rivendita × (1 - percVendita/100) - totaleInvestito) / totaleInvestito × 100`
+- Prezzo max acquisto: formula inversa (stessa di `calcTettoMassimo` semplificata per il ROI target dallo slider)
+
+## Grafico — dettaglio rendering
+
+Uso un `<canvas>` per il grafico con logica custom:
+- Asse X: range dal 50% al 160% del prezzo base d'acquisto
+- Asse Y: calcolato come rivendita minima per estremi X ±20% margine
+- La linea soglia si calcola punto per punto: per ogni X, Y = rivenditaMinima(X)
+- Fill area sopra/sotto con colori semitrasparenti
+- Cerchio per posizione corrente, cerchi ambra per scenari
+- Dashed lines di riferimento
+- Tooltip su mousemove con coordinate e metriche
+
+## Stile
+- Componenti shadcn/ui (Card, Slider, Badge)
+- Layout `max-w-4xl mx-auto` con padding generoso
+- Coerente con il resto del progetto
+- Nessuna modifica a componenti esistenti
 
