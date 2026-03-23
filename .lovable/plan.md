@@ -1,19 +1,35 @@
 
 
-# Chiarimento spese agenzia + aggiunta "0% (no aliquota)"
+# Modifiche pagina /soglia: mesi editabili, fix agenzia, input manuali prezzi
 
-## 1. Spese agenzia nella pagina /soglia — come funzionano
+## Bug trovato: spese vendita fisse ignorate
+`calcFixedExpenses` salta interamente la categoria `vendita` (riga 17: `if (cat.id === 'vendita') continue`). Questo significa che eventuali **importi fissi** nelle voci di vendita (es. agenzia con importo fisso > 0) vengono **ignorati**. Inoltre `getSalePercentage` usa `item.percentage` come condizione truthy: se la percentuale è 0 viene correttamente saltata, quindi il calcolo percentuale è OK. Il problema reale è che le voci vendita con importo fisso non entrano né nelle spese fisse né nel calcolo percentuale.
 
-Le spese di agenzia **sono già calcolate correttamente** nel parametro `salePct`, che include tutte le voci percentuali della categoria "vendita" (agenzia inclusa). Questo valore viene usato in tutte le formule: la rivendita minima si calcola come `totaleInvestito × (1 + ROI) / (1 - salePct/100)`, quindi l'agenzia è già considerata come costo proporzionale alla vendita.
+---
 
-Il testo attuale "Agenzia esclusa" accanto allo slider spese fisse è **tecnicamente corretto** (l'agenzia non è nelle spese fisse perché è percentuale), ma è **fuorviante** — sembra che non venga conteggiata affatto.
+## Modifiche
 
-### Modifica: `src/pages/Soglia.tsx`
-- Riscrivere il testo sotto lo slider spese fisse per chiarire che l'agenzia è **inclusa nel calcolo come costo % sulla vendita**, non ignorata. Esempio: `"Valore progetto: €X — Agenzia (Y%) calcolata automaticamente sul prezzo di rivendita"`
-- Aggiungere una riga informativa nelle KPI o sotto gli slider che mostra il **costo agenzia stimato** in euro basato sul prezzo di rivendita corrente: `Costo agenzia stimato: €Z`
+### 1. Mesi editabili — `src/pages/Soglia.tsx`
+- Aggiungere uno stato locale `mesi` inizializzato da `project.durataOperazione`
+- Nel footer del card slider (riga 531), sostituire il testo statico "Durata: X mesi" con un mini-input: numero con frecce su/giù (input `type="number"` compatto, larghezza ~60px, inline)
+- Ricalcolare `fixedExp` quando `mesi` cambia (le spese mensili dipendono dalla durata)
+- Aggiornare `calcFixedExpenses` per accettare un parametro `mesi` override
 
-## 2. Aggiunta "0% (no aliquota)" nel dropdown aliquota
+### 2. Fix calcolo spese agenzia — `src/pages/Soglia.tsx`
+- Modificare `getSalePercentage` per restituire anche il totale delle voci **fisse** della categoria vendita (non solo le percentuali)
+- Creare `getSaleFixedAmount(project)` che somma gli `amount` delle voci vendita non percentuali
+- Includere questo importo fisso nel `totalInvested`
+- Aggiornare `getAgencyInfo` per restituire anche l'importo fisso dell'agenzia, e mostrarlo nell'UI
+- Se percentuale = 0 E importo = 0, mostrare "Agenzia: €0 (non impostata)"
 
-### Modifica: `src/components/sections/AuctionSimulationSection.tsx`
-- Aggiungere `<SelectItem value="0">0% (no aliquota)</SelectItem>` come **prima voce** nel `<SelectContent>`, prima di "2% (prima casa)"
+### 3. Slider step 100 + input manuale — `src/pages/Soglia.tsx`
+- Slider acquisto e rivendita: impostare `step={100}`
+- Accanto a ogni slider (acquisto e rivendita), aggiungere un `CurrencyInput` compatto inline che permette di digitare il valore manualmente
+- Layout: label a sinistra, CurrencyInput piccolo a destra (al posto del testo statico `formatEuro`), slider sotto
+- Il CurrencyInput e lo slider si sincronizzano bidirezionalmente
+- Dimensione CurrencyInput: `w-[120px]` con `text-sm`
+
+---
+
+### File modificato: solo `src/pages/Soglia.tsx`
 
