@@ -29,13 +29,13 @@ export function MobileStepper({ steps }: Props) {
 
       {/* Content */}
       <ScrollArea className="flex-1">
-        <div className="p-4">
+        <div className="p-4 pb-20">
           {steps[current].content}
         </div>
       </ScrollArea>
 
-      {/* Navigation buttons */}
-      <div className="border-t bg-card px-4 py-2 flex gap-2 shrink-0">
+      {/* Navigation buttons — fixed al fondo del viewport */}
+      <div className="fixed bottom-0 left-0 right-0 z-10 border-t bg-card px-4 py-2 flex gap-2">
         <Button
           variant="outline"
           size="sm"
