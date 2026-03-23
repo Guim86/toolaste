@@ -505,7 +505,10 @@ function SogliaContent({ project }: { project: ProjectData }) {
                   step={Math.max(100, Math.round((expMax - expMin) / 500))}
                 />
                 <p className="text-[10px] text-muted-foreground">
-                  Valore progetto: {formatEuro(projectFixedExp)} — {agencyInfo.label} esclusa ({agencyInfo.pct}% sul prezzo di vendita)
+                  Valore progetto: {formatEuro(projectFixedExp)} — {agencyInfo.label} ({agencyInfo.pct}%) calcolata automaticamente sul prezzo di rivendita
+                </p>
+                <p className="text-[10px] text-muted-foreground font-medium">
+                  💰 Costo {agencyInfo.label.toLowerCase()} stimato: {formatEuro(resalePrice * agencyInfo.pct / 100)}
                 </p>
               </div>
 
