@@ -325,6 +325,16 @@ function formatCompact(v: number): string {
   return v.toFixed(0);
 }
 
+function HomeButton() {
+  const navigate = useNavigate();
+  return (
+    <Button variant="outline" size="sm" className="text-xs gap-1" onClick={() => navigate('/')}>
+      <Home className="h-3 w-3" />
+      HOME
+    </Button>
+  );
+}
+
 /* ─── Main page ─── */
 
 export default function Soglia() {
