@@ -1,15 +1,19 @@
 import { useMemo } from 'react';
+import { useNavigate } from 'react-router-dom';
 import type { ProjectData, ScenarioResult } from '@/types/project';
 import { calcScenarioResult, getPurchaseRange } from '@/utils/calculations';
 import { FeasibilityBar, esitoConfig } from './FeasibilityBar';
 import { formatEuro } from '@/utils/formatting';
 import { ScrollArea } from '@/components/ui/scroll-area';
+import { Button } from '@/components/ui/button';
+import { BarChart3 } from 'lucide-react';
 
 interface Props {
   project: ProjectData;
 }
 
 export function ResultsSidebar({ project }: Props) {
+  const navigate = useNavigate();
   const results = useMemo(() => {
     return project.saleScenarios.map(s => calcScenarioResult(project, s));
   }, [project]);
@@ -29,11 +33,17 @@ export function ResultsSidebar({ project }: Props) {
 
   return (
     <div className="h-full flex flex-col">
-      <div className="p-4 border-b">
-        <h2 className="font-semibold text-sm">Risultati</h2>
-        {project.nome && (
-          <p className="text-xs text-muted-foreground mt-0.5 truncate">{project.nome}</p>
-        )}
+      <div className="p-4 border-b flex items-center justify-between">
+        <div>
+          <h2 className="font-semibold text-sm">Risultati</h2>
+          {project.nome && (
+            <p className="text-xs text-muted-foreground mt-0.5 truncate">{project.nome}</p>
+          )}
+        </div>
+        <Button variant="outline" size="sm" className="text-xs gap-1" onClick={() => navigate('/soglia')}>
+          <BarChart3 className="h-3 w-3" />
+          GRAFICO ROI
+        </Button>
       </div>
 
       <ScrollArea className="flex-1">

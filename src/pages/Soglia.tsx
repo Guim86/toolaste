@@ -1,8 +1,11 @@
 import { useMemo, useState, useRef, useEffect, useCallback } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { useProject } from '@/hooks/useProject';
 import { Card, CardContent } from '@/components/ui/card';
 import { Slider } from '@/components/ui/slider';
 import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
+import { Home } from 'lucide-react';
 import { formatEuro, formatPercent } from '@/utils/formatting';
 import type { ProjectData } from '@/types/project';
 
@@ -322,6 +325,16 @@ function formatCompact(v: number): string {
   return v.toFixed(0);
 }
 
+function HomeButton() {
+  const navigate = useNavigate();
+  return (
+    <Button variant="outline" size="sm" className="text-xs gap-1" onClick={() => navigate('/')}>
+      <Home className="h-3 w-3" />
+      HOME
+    </Button>
+  );
+}
+
 /* ─── Main page ─── */
 
 export default function Soglia() {
@@ -391,9 +404,12 @@ function SogliaContent({ project }: { project: ProjectData }) {
     <div className="min-h-screen bg-background">
       <div className="max-w-5xl mx-auto px-4 py-6 space-y-4">
         {/* Header */}
-        <div>
-          <h1 className="text-xl font-bold text-foreground">{project.nome || 'Progetto senza nome'}</h1>
-          {project.comune && <p className="text-sm text-muted-foreground">{project.comune}</p>}
+        <div className="flex items-center justify-between">
+          <div>
+            <h1 className="text-xl font-bold text-foreground">{project.nome || 'Progetto senza nome'}</h1>
+            {project.comune && <p className="text-sm text-muted-foreground">{project.comune}</p>}
+          </div>
+          <HomeButton />
         </div>
 
         {/* KPI Cards — compact row */}
