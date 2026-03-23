@@ -1,9 +1,12 @@
 import { useMemo } from 'react';
+import { useNavigate } from 'react-router-dom';
 import type { ProjectData, ScenarioResult } from '@/types/project';
 import { calcScenarioResult, getPurchaseRange } from '@/utils/calculations';
 import { FeasibilityBar, esitoConfig } from './FeasibilityBar';
 import { formatEuro } from '@/utils/formatting';
 import { ScrollArea } from '@/components/ui/scroll-area';
+import { Button } from '@/components/ui/button';
+import { BarChart3 } from 'lucide-react';
 
 interface Props {
   project: ProjectData;
