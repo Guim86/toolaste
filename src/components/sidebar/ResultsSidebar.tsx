@@ -33,11 +33,17 @@ export function ResultsSidebar({ project }: Props) {
 
   return (
     <div className="h-full flex flex-col">
-      <div className="p-4 border-b">
-        <h2 className="font-semibold text-sm">Risultati</h2>
-        {project.nome && (
-          <p className="text-xs text-muted-foreground mt-0.5 truncate">{project.nome}</p>
-        )}
+      <div className="p-4 border-b flex items-center justify-between">
+        <div>
+          <h2 className="font-semibold text-sm">Risultati</h2>
+          {project.nome && (
+            <p className="text-xs text-muted-foreground mt-0.5 truncate">{project.nome}</p>
+          )}
+        </div>
+        <Button variant="outline" size="sm" className="text-xs gap-1" onClick={() => navigate('/soglia')}>
+          <BarChart3 className="h-3 w-3" />
+          GRAFICO ROI
+        </Button>
       </div>
 
       <ScrollArea className="flex-1">
