@@ -5,19 +5,21 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Slider } from '@/components/ui/slider';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { Home } from 'lucide-react';
+import { Home, ChevronUp, ChevronDown } from 'lucide-react';
 import { formatEuro, formatPercent } from '@/utils/formatting';
+import { CurrencyInput } from '@/components/shared/CurrencyInput';
 import type { ProjectData } from '@/types/project';
 
 /* ─── Calculation helpers ─── */
 
-function calcFixedExpenses(project: ProjectData): number {
+function calcFixedExpenses(project: ProjectData, mesiOverride?: number): number {
+  const mesi = mesiOverride ?? project.durataOperazione;
   let total = 0;
   for (const cat of project.expenses) {
-    if (cat.id === 'vendita') continue;
+    if (cat.id === 'vendita') continue; // sale % and fixed sale costs handled separately
     for (const item of cat.items) {
       if (item.isMonthly) {
-        total += item.amount * project.durataOperazione;
+        total += item.amount * mesi;
       } else {
         total += item.amount;
       }
@@ -26,12 +28,29 @@ function calcFixedExpenses(project: ProjectData): number {
   return total;
 }
 
-function getAgencyInfo(project: ProjectData): { label: string; pct: number } {
+/** Returns total fixed amounts from vendita category (non-percentage or percentage items with a fixed amount) */
+function getSaleFixedAmount(project: ProjectData): number {
   const vendita = project.expenses.find(c => c.id === 'vendita');
-  if (!vendita) return { label: 'Agenzia', pct: 0 };
+  if (!vendita) return 0;
+  let total = 0;
+  for (const item of vendita.items) {
+    if (!item.isPercentage && item.amount > 0) {
+      total += item.amount;
+    }
+    // If an item is percentage-based but also has a fixed amount component
+    if (item.isPercentage && item.amount > 0) {
+      total += item.amount;
+    }
+  }
+  return total;
+}
+
+function getAgencyInfo(project: ProjectData): { label: string; pct: number; fixedAmount: number } {
+  const vendita = project.expenses.find(c => c.id === 'vendita');
+  if (!vendita) return { label: 'Agenzia', pct: 0, fixedAmount: 0 };
   const agenzia = vendita.items.find(i => i.id === 'agenzia');
-  if (!agenzia) return { label: 'Agenzia', pct: 0 };
-  return { label: agenzia.label, pct: agenzia.percentage ?? 0 };
+  if (!agenzia) return { label: 'Agenzia', pct: 0, fixedAmount: 0 };
+  return { label: agenzia.label, pct: agenzia.percentage ?? 0, fixedAmount: agenzia.amount ?? 0 };
 }
 
 function getSalePercentage(project: ProjectData): number {
@@ -39,7 +58,7 @@ function getSalePercentage(project: ProjectData): number {
   if (!vendita) return 0;
   let pct = 0;
   for (const item of vendita.items) {
-    if (item.isPercentage && item.percentage) pct += item.percentage;
+    if (item.isPercentage && item.percentage && item.percentage > 0) pct += item.percentage;
   }
   return pct;
 }
@@ -51,8 +70,8 @@ function calcTax(project: ProjectData, purchasePrice: number): number {
   return purchasePrice * project.taxRate;
 }
 
-function calcTotalInvested(project: ProjectData, purchasePrice: number, fixedExp: number): number {
-  return purchasePrice + calcTax(project, purchasePrice) + fixedExp;
+function calcTotalInvested(project: ProjectData, purchasePrice: number, fixedExp: number, saleFixed: number): number {
+  return purchasePrice + calcTax(project, purchasePrice) + fixedExp + saleFixed;
 }
 
 function calcMinResale(totalInvested: number, roiTarget: number, salePct: number): number {
@@ -64,14 +83,14 @@ function calcROI(resale: number, totalInvested: number, salePct: number): number
   return ((resale * (1 - salePct / 100) - totalInvested) / totalInvested) * 100;
 }
 
-function calcMaxPurchase(project: ProjectData, resale: number, roiTarget: number, fixedExp: number, salePct: number): number {
+function calcMaxPurchase(project: ProjectData, resale: number, roiTarget: number, fixedExp: number, salePct: number, saleFixed: number): number {
   const netResale = resale * (1 - salePct / 100);
   const required = netResale / (1 + roiTarget / 100);
   if (project.taxBase === 'catastale' && project.renditaCatastale > 0) {
     const taxFixed = project.renditaCatastale * 126 * project.taxRate;
-    return Math.max(0, required - fixedExp - taxFixed);
+    return Math.max(0, required - fixedExp - saleFixed - taxFixed);
   }
-  return Math.max(0, (required - fixedExp) / (1 + project.taxRate));
+  return Math.max(0, (required - fixedExp - saleFixed) / (1 + project.taxRate));
 }
 
 /* ─── Canvas chart ─── */
@@ -83,10 +102,11 @@ interface ChartProps {
   roiTarget: number;
   fixedExp: number;
   salePct: number;
+  saleFixed: number;
   purchaseRange: [number, number];
 }
 
-function ThresholdChart({ project, purchasePrice, resalePrice, roiTarget, fixedExp, salePct, purchaseRange }: ChartProps) {
+function ThresholdChart({ project, purchasePrice, resalePrice, roiTarget, fixedExp, salePct, saleFixed, purchaseRange }: ChartProps) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
   const [tooltip, setTooltip] = useState<{ x: number; y: number; purchase: number; resale: number; minResale: number; roi: number; margin: number; valid: boolean } | null>(null);
@@ -123,8 +143,8 @@ function ThresholdChart({ project, purchasePrice, resalePrice, roiTarget, fixedE
     const xMin = purchaseRange[0];
     const xMax = purchaseRange[1];
 
-    const yAtMin = calcMinResale(calcTotalInvested(project, xMin, fixedExp), roiTarget, salePct);
-    const yAtMax = calcMinResale(calcTotalInvested(project, xMax, fixedExp), roiTarget, salePct);
+    const yAtMin = calcMinResale(calcTotalInvested(project, xMin, fixedExp, saleFixed), roiTarget, salePct);
+    const yAtMax = calcMinResale(calcTotalInvested(project, xMax, fixedExp, saleFixed), roiTarget, salePct);
     const allResales = [yAtMin, yAtMax, resalePrice, ...scenarios.map(s => s.resale)];
     const yDataMin = Math.min(...allResales) * 0.8;
     const yDataMax = Math.max(...allResales) * 1.2;
@@ -141,7 +161,7 @@ function ThresholdChart({ project, purchasePrice, resalePrice, roiTarget, fixedE
     const thresholdPoints: { x: number; y: number }[] = [];
     for (let i = 0; i <= steps; i++) {
       const p = xMin + (i / steps) * (xMax - xMin);
-      const inv = calcTotalInvested(project, p, fixedExp);
+      const inv = calcTotalInvested(project, p, fixedExp, saleFixed);
       const minR = calcMinResale(inv, roiTarget, salePct);
       thresholdPoints.push({ x: toX(p), y: toY(minR) });
     }
@@ -204,7 +224,7 @@ function ThresholdChart({ project, purchasePrice, resalePrice, roiTarget, fixedE
     }
 
     // Current position point
-    const inv = calcTotalInvested(project, purchasePrice, fixedExp);
+    const inv = calcTotalInvested(project, purchasePrice, fixedExp, saleFixed);
     const minR = calcMinResale(inv, roiTarget, salePct);
     const isValid = resalePrice >= minR;
     ctx.beginPath();
@@ -258,7 +278,7 @@ function ThresholdChart({ project, purchasePrice, resalePrice, roiTarget, fixedE
     ctx.restore();
 
     (canvas as any)._chartMeta = { pad, cw, ch, xMin, xMax, yDataMin, yDataMax, fromX, fromY };
-  }, [project, purchasePrice, resalePrice, roiTarget, fixedExp, salePct, purchaseRange, scenarios]);
+  }, [project, purchasePrice, resalePrice, roiTarget, fixedExp, salePct, saleFixed, purchaseRange, scenarios]);
 
   useEffect(() => {
     draw();
@@ -284,13 +304,13 @@ function ThresholdChart({ project, purchasePrice, resalePrice, roiTarget, fixedE
 
     const purchase = meta.fromX(mx);
     const resale = meta.fromY(my);
-    const inv = calcTotalInvested(project, purchase, fixedExp);
+    const inv = calcTotalInvested(project, purchase, fixedExp, saleFixed);
     const minResale = calcMinResale(inv, roiTarget, salePct);
     const roi = calcROI(resale, inv, salePct);
     const margin = resale - minResale;
 
     setTooltip({ x: e.clientX - rect.left, y: e.clientY - rect.top, purchase, resale, minResale, roi, margin, valid: resale >= minResale });
-  }, [project, fixedExp, roiTarget, salePct]);
+  }, [project, fixedExp, saleFixed, roiTarget, salePct]);
 
   return (
     <div ref={containerRef} className="relative w-full">
@@ -335,6 +355,33 @@ function HomeButton() {
   );
 }
 
+/* ─── Month stepper ─── */
+
+function MonthStepper({ value, onChange }: { value: number; onChange: (v: number) => void }) {
+  return (
+    <span className="inline-flex items-center gap-0.5">
+      <span className="font-medium text-foreground font-mono w-[28px] text-center">{value}</span>
+      <span className="inline-flex flex-col -space-y-px">
+        <button
+          type="button"
+          className="h-3 w-4 flex items-center justify-center rounded-t text-muted-foreground hover:text-foreground hover:bg-muted transition-colors"
+          onClick={() => onChange(Math.min(120, value + 1))}
+        >
+          <ChevronUp className="h-3 w-3" />
+        </button>
+        <button
+          type="button"
+          className="h-3 w-4 flex items-center justify-center rounded-b text-muted-foreground hover:text-foreground hover:bg-muted transition-colors"
+          onClick={() => onChange(Math.max(1, value - 1))}
+        >
+          <ChevronDown className="h-3 w-3" />
+        </button>
+      </span>
+      <span className="text-foreground">mesi</span>
+    </span>
+  );
+}
+
 /* ─── Main page ─── */
 
 export default function Soglia() {
@@ -356,13 +403,17 @@ function SogliaContent({ project }: { project: ProjectData }) {
   const mediumScenario = project.saleScenarios.find(s => s.id === 'medio');
   const baseResale = mediumScenario && mediumScenario.euroPerMq > 0 ? mediumScenario.euroPerMq * project.mq : basePrice * 1.3;
 
-  const projectFixedExp = useMemo(() => calcFixedExpenses(project), [project.expenses, project.durataOperazione]);
   const salePct = useMemo(() => getSalePercentage(project), [project.expenses]);
+  const saleFixed = useMemo(() => getSaleFixedAmount(project), [project.expenses]);
   const agencyInfo = useMemo(() => getAgencyInfo(project), [project.expenses]);
 
+  const [mesi, setMesi] = useState(project.durataOperazione);
   const [purchasePrice, setPurchasePrice] = useState(basePrice);
   const [resalePrice, setResalePrice] = useState(baseResale);
   const [roiTarget, setRoiTarget] = useState(project.minROI);
+
+  // Recalculate fixed expenses when mesi changes
+  const projectFixedExp = useMemo(() => calcFixedExpenses(project, mesi), [project.expenses, mesi]);
   const [fixedExp, setFixedExp] = useState(projectFixedExp);
 
   // Reset sliders when project defaults change
@@ -376,6 +427,10 @@ function SogliaContent({ project }: { project: ProjectData }) {
   }, [project.minROI]);
 
   useEffect(() => {
+    setMesi(project.durataOperazione);
+  }, [project.durataOperazione]);
+
+  useEffect(() => {
     const ms = project.saleScenarios.find(s => s.id === 'medio');
     const br = ms && ms.euroPerMq > 0 ? ms.euroPerMq * project.mq : (project.prezzoAggiudicazione > 0 ? project.prezzoAggiudicazione : project.prezzoBase) * 1.3;
     setResalePrice(br);
@@ -385,20 +440,23 @@ function SogliaContent({ project }: { project: ProjectData }) {
     setFixedExp(projectFixedExp);
   }, [projectFixedExp]);
 
-  const totalInvested = calcTotalInvested(project, purchasePrice, fixedExp);
+  const totalInvested = calcTotalInvested(project, purchasePrice, fixedExp, saleFixed);
   const minResale = calcMinResale(totalInvested, roiTarget, salePct);
   const currentROI = calcROI(resalePrice, totalInvested, salePct);
   const margin = resalePrice - minResale;
-  const maxPurchase = calcMaxPurchase(project, resalePrice, roiTarget, fixedExp, salePct);
+  const maxPurchase = calcMaxPurchase(project, resalePrice, roiTarget, fixedExp, salePct, saleFixed);
   const isValid = resalePrice >= minResale;
 
-  // Purchase range: min = offertaMinima (can't buy lower), max = 160% of base
   const purchaseMin = project.offertaMinima > 0 ? project.offertaMinima : Math.max(1, Math.round(basePrice * 0.5));
   const purchaseMax = Math.round(basePrice * 1.6);
   const resaleMin = Math.max(1, Math.round(baseResale * 0.6));
   const resaleMax = Math.round(baseResale * 1.5);
   const expMin = Math.max(0, Math.round(projectFixedExp * 0.3));
   const expMax = Math.round(projectFixedExp * 2.5);
+
+  // Estimated agency cost
+  const agencyCostEstimate = agencyInfo.pct > 0 ? resalePrice * agencyInfo.pct / 100 : 0;
+  const totalAgencyCost = agencyCostEstimate + agencyInfo.fixedAmount;
 
   return (
     <div className="min-h-screen bg-background">
@@ -412,7 +470,7 @@ function SogliaContent({ project }: { project: ProjectData }) {
           <HomeButton />
         </div>
 
-        {/* KPI Cards — compact row */}
+        {/* KPI Cards */}
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
           <Card>
             <CardContent className="py-3 px-4 space-y-0.5">
@@ -452,41 +510,52 @@ function SogliaContent({ project }: { project: ProjectData }) {
           </Card>
         </div>
 
-        {/* Sliders — compact */}
+        {/* Sliders */}
         <Card>
           <CardContent className="py-4 px-4 space-y-3">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-3">
+              {/* Purchase price */}
               <div className="space-y-1.5">
-                <div className="flex justify-between text-sm">
+                <div className="flex items-center justify-between gap-2 text-sm">
                   <span className="text-muted-foreground">Prezzo di acquisto</span>
-                  <span className="font-mono font-semibold text-foreground">{formatEuro(purchasePrice)}</span>
+                  <CurrencyInput
+                    value={purchasePrice}
+                    onChange={(v) => setPurchasePrice(Math.max(purchaseMin, Math.min(purchaseMax, v)))}
+                    className="w-[130px]"
+                  />
                 </div>
                 <Slider
                   value={[purchasePrice]}
                   onValueChange={([v]) => setPurchasePrice(v)}
                   min={purchaseMin}
                   max={purchaseMax}
-                  step={Math.max(100, Math.round((purchaseMax - purchaseMin) / 500))}
+                  step={100}
                 />
                 {project.offertaMinima > 0 && (
                   <p className="text-[10px] text-muted-foreground">Min: offerta minima {formatEuro(project.offertaMinima)}</p>
                 )}
               </div>
 
+              {/* Resale price */}
               <div className="space-y-1.5">
-                <div className="flex justify-between text-sm">
+                <div className="flex items-center justify-between gap-2 text-sm">
                   <span className="text-muted-foreground">Prezzo di rivendita</span>
-                  <span className="font-mono font-semibold text-foreground">{formatEuro(resalePrice)}</span>
+                  <CurrencyInput
+                    value={resalePrice}
+                    onChange={(v) => setResalePrice(Math.max(resaleMin, Math.min(resaleMax, v)))}
+                    className="w-[130px]"
+                  />
                 </div>
                 <Slider
                   value={[resalePrice]}
                   onValueChange={([v]) => setResalePrice(v)}
                   min={resaleMin}
                   max={resaleMax}
-                  step={Math.max(100, Math.round((resaleMax - resaleMin) / 500))}
+                  step={100}
                 />
               </div>
 
+              {/* Fixed expenses */}
               <div className="space-y-1.5">
                 <div className="flex justify-between text-sm">
                   <span className="text-muted-foreground">Spese fisse totali</span>
@@ -508,10 +577,17 @@ function SogliaContent({ project }: { project: ProjectData }) {
                   Valore progetto: {formatEuro(projectFixedExp)} — {agencyInfo.label} ({agencyInfo.pct}%) calcolata automaticamente sul prezzo di rivendita
                 </p>
                 <p className="text-[10px] text-muted-foreground font-medium">
-                  💰 Costo {agencyInfo.label.toLowerCase()} stimato: {formatEuro(resalePrice * agencyInfo.pct / 100)}
+                  💰 Costo {agencyInfo.label.toLowerCase()} stimato:{' '}
+                  {totalAgencyCost > 0
+                    ? formatEuro(totalAgencyCost) +
+                      (agencyInfo.pct > 0 && agencyInfo.fixedAmount > 0
+                        ? ` (${formatEuro(agencyCostEstimate)} % + ${formatEuro(agencyInfo.fixedAmount)} fisso)`
+                        : '')
+                    : '€0 (non impostata)'}
                 </p>
               </div>
 
+              {/* ROI target */}
               <div className="space-y-1.5">
                 <div className="flex justify-between text-sm">
                   <span className="text-muted-foreground">ROI target</span>
@@ -528,7 +604,7 @@ function SogliaContent({ project }: { project: ProjectData }) {
             </div>
 
             <div className="text-[11px] text-muted-foreground flex flex-wrap gap-x-4 gap-y-0.5 pt-2 border-t border-border">
-              <span>Durata: <span className="font-medium text-foreground">{project.durataOperazione} mesi</span></span>
+              <span>Durata: <MonthStepper value={mesi} onChange={setMesi} /></span>
               <span>Aliquota tasse: <span className="font-medium text-foreground">{formatPercent(project.taxRate * 100)}</span></span>
               <span className="text-muted-foreground/70 italic">Modificabili nelle rispettive sezioni del progetto.</span>
             </div>
@@ -546,6 +622,7 @@ function SogliaContent({ project }: { project: ProjectData }) {
               roiTarget={roiTarget}
               fixedExp={fixedExp}
               salePct={salePct}
+              saleFixed={saleFixed}
               purchaseRange={[purchaseMin, purchaseMax]}
             />
           </CardContent>
