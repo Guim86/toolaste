@@ -13,6 +13,7 @@ interface Props {
 }
 
 export function ResultsSidebar({ project }: Props) {
+  const navigate = useNavigate();
   const results = useMemo(() => {
     return project.saleScenarios.map(s => calcScenarioResult(project, s));
   }, [project]);
