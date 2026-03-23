@@ -1,24 +1,19 @@
 
 
-# Fix bottoni Avanti/Indietro nascosti su mobile
+# Chiarimento spese agenzia + aggiunta "0% (no aliquota)"
 
-## Problema
-Il `TabsContent` di Radix non partecipa correttamente alla catena flex: anche con `flex-1 overflow-hidden`, il contenuto del MobileStepper deborda oltre il viewport, spingendo i bottoni di navigazione fuori schermo. Su Samsung S25 Ultra l'utente deve scrollare per trovarli.
+## 1. Spese agenzia nella pagina /soglia — come funzionano
 
-## Causa tecnica
-`TabsContent` ha `mt-2` di default e non ha `min-height: 0` (necessario per far funzionare `flex-1` + `overflow-hidden` nei flex container annidati). Questo rompe la catena `h-screen → flex-col → flex-1 → h-full`.
+Le spese di agenzia **sono già calcolate correttamente** nel parametro `salePct`, che include tutte le voci percentuali della categoria "vendita" (agenzia inclusa). Questo valore viene usato in tutte le formule: la rivendita minima si calcola come `totaleInvestito × (1 + ROI) / (1 - salePct/100)`, quindi l'agenzia è già considerata come costo proporzionale alla vendita.
 
-## Soluzione
+Il testo attuale "Agenzia esclusa" accanto allo slider spese fisse è **tecnicamente corretto** (l'agenzia non è nelle spese fisse perché è percentuale), ma è **fuorviante** — sembra che non venga conteggiata affatto.
 
-### File: `src/components/mobile/MobileStepper.tsx`
-Rendere i bottoni di navigazione **fixed in basso** sul viewport mobile, con padding-bottom nel contenuto per evitare sovrapposizione:
+### Modifica: `src/pages/Soglia.tsx`
+- Riscrivere il testo sotto lo slider spese fisse per chiarire che l'agenzia è **inclusa nel calcolo come costo % sulla vendita**, non ignorata. Esempio: `"Valore progetto: €X — Agenzia (Y%) calcolata automaticamente sul prezzo di rivendita"`
+- Aggiungere una riga informativa nelle KPI o sotto gli slider che mostra il **costo agenzia stimato** in euro basato sul prezzo di rivendita corrente: `Costo agenzia stimato: €Z`
 
-- Bottoni: `fixed bottom-0 left-0 right-0` con `z-10` e `border-t bg-card`
-- Contenuto: aggiungere `pb-16` per fare spazio ai bottoni fissi
-- Rimuovere la dipendenza dalla catena flex per il posizionamento dei bottoni
+## 2. Aggiunta "0% (no aliquota)" nel dropdown aliquota
 
-Questo approccio è il più robusto: funziona indipendentemente da come Radix/TabsContent gestisce il layout, e i bottoni saranno **sempre visibili** in basso allo schermo.
-
-### Nessun altro file modificato
-La correzione è interamente nel MobileStepper.
+### Modifica: `src/components/sections/AuctionSimulationSection.tsx`
+- Aggiungere `<SelectItem value="0">0% (no aliquota)</SelectItem>` come **prima voce** nel `<SelectContent>`, prima di "2% (prima casa)"
 
