@@ -143,6 +143,7 @@ export function AuctionSimulationSection({ project, onUpdate }: Props) {
               <Select value={String(project.taxRate)} onValueChange={v => onUpdate({ taxRate: parseFloat(v) })}>
                 <SelectTrigger className="text-sm"><SelectValue /></SelectTrigger>
                 <SelectContent>
+                  <SelectItem value="0">0% (no aliquota)</SelectItem>
                   <SelectItem value="0.02">2% (prima casa)</SelectItem>
                   <SelectItem value="0.09">9% (seconda casa)</SelectItem>
                   <SelectItem value="0.04">4% IVA (prima casa)</SelectItem>
