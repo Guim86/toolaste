@@ -1,8 +1,11 @@
 import { useMemo, useState, useRef, useEffect, useCallback } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { useProject } from '@/hooks/useProject';
 import { Card, CardContent } from '@/components/ui/card';
 import { Slider } from '@/components/ui/slider';
 import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
+import { Home } from 'lucide-react';
 import { formatEuro, formatPercent } from '@/utils/formatting';
 import type { ProjectData } from '@/types/project';
 
